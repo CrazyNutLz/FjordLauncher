@@ -54,9 +54,11 @@
 AccountListPage::AccountListPage(QWidget* parent) : QMainWindow(parent), ui(new Ui::AccountListPage)
 {
     ui->setupUi(this);
-    ui->listView->setEmptyString(
-        tr("Welcome!\n"
-           "If you're new here, you can select the \"Add Microsoft\" button to link your Microsoft account."));
+    ui->actionAddMicrosoft->setVisible(false);
+    ui->actionAddOffline->setVisible(false);
+    ui->toolBar->removeAction(ui->actionAddMicrosoft);
+    ui->toolBar->removeAction(ui->actionAddOffline);
+    ui->listView->setEmptyString(tr("欢迎！\n请选择“添加雕版账号”来登录。"));
     ui->listView->setEmptyMode(VersionListView::String);
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -68,6 +70,7 @@ AccountListPage::AccountListPage(QWidget* parent) : QMainWindow(parent), ui(new 
     ui->listView->header()->setSectionResizeMode(AccountList::VListColumns::TypeColumn, QHeaderView::ResizeToContents);
     ui->listView->header()->setSectionResizeMode(AccountList::VListColumns::StatusColumn, QHeaderView::ResizeToContents);
     ui->listView->header()->setSectionResizeMode(AccountList::VListColumns::AuthServerColumn, QHeaderView::ResizeToContents);
+    ui->listView->setColumnHidden(AccountList::VListColumns::AuthServerColumn, true);
     ui->listView->setSelectionMode(QAbstractItemView::SingleSelection);
 
     // Expand the account column
@@ -133,12 +136,9 @@ void AccountListPage::listChanged()
 void AccountListPage::on_actionAddAuthlibInjector_triggered()
 {
     MinecraftAccountPtr account = AuthlibInjectorLoginDialog::newAccount(
-        this, tr("Please enter your username (sometimes an email address), password, and the URL of your API server."
-                 "<br>"
-                 "See <a href=\"https://github.com/unmojang/FjordLauncher/blob/develop/doc/alternative-auth-servers.md\">this page</a> in "
-                 "the Fjord Launcher repository for a list of common API servers."
+        this, tr("请输入您的雕版账号和密码。"
                  "<br><br>"
-                 "<b>Caution!</b> Your username and password will be sent to the authentication server you specify!"));
+                 "如果您是第一次加入服务器，请先<a href=\"https://login.mc-user.com:233/a000d3f85bc311ea908800163e095b49/register\">点击这里注册账号</a>。"));
 
     if (account) {
         m_accounts->addAccount(account);

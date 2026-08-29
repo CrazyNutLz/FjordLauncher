@@ -652,8 +652,14 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
             { BuildConfig.LAUNCHER_CONFIGFILE, "pollymc.cfg", "prismlauncher.cfg", "polymc.cfg", "multimc.cfg" }, this));
 
         // Theming
-        m_settings->registerSetting("IconTheme", QString("breeze_light"));
-        m_settings->registerSetting("ApplicationTheme", QString("bright"));
+        m_settings->registerSetting("IconTheme", QString("breeze_dark"));
+        m_settings->registerSetting("ApplicationTheme", QString("dark"));
+        m_settings->registerSetting("FjordDefaultAppearanceApplied", false);
+        if (!m_settings->get("FjordDefaultAppearanceApplied").toBool()) {
+            m_settings->set("IconTheme", QString("breeze_dark"));
+            m_settings->set("ApplicationTheme", QString("dark"));
+            m_settings->set("FjordDefaultAppearanceApplied", true);
+        }
         m_settings->registerSetting("BackgroundCat", QString("spaceship-phoebe"));
 
         // Remembered state
@@ -722,6 +728,11 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
         // Language
         m_settings->registerSetting("Language", QString("zh"));
+        m_settings->registerSetting("FjordDefaultLanguageApplied", false);
+        if (!m_settings->get("FjordDefaultLanguageApplied").toBool()) {
+            m_settings->set("Language", QString("zh"));
+            m_settings->set("FjordDefaultLanguageApplied", true);
+        }
         m_settings->registerSetting("UseSystemLocale", false);
 
         // Console

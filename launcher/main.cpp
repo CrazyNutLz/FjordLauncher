@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
 #endif
 
     // initialize Qt
+    Q_INIT_RESOURCE(translations);
     Application app(argc, argv);
     switch (app.status()) {
         case Application::StartingUp:

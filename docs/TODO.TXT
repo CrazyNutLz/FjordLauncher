@@ -1,0 +1,5 @@
+AI不要自行修改这个文档里面决定的TODO,此文档只供我自己记录使用
+
+
+cmake --build --preset windows_msvc --config Debug
+.\build\Debug\fjordlauncher.exe

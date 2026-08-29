@@ -652,8 +652,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
             { BuildConfig.LAUNCHER_CONFIGFILE, "pollymc.cfg", "prismlauncher.cfg", "polymc.cfg", "multimc.cfg" }, this));
 
         // Theming
-        m_settings->registerSetting("IconTheme", QString());
-        m_settings->registerSetting("ApplicationTheme", QString());
+        m_settings->registerSetting("IconTheme", QString("breeze_light"));
+        m_settings->registerSetting("ApplicationTheme", QString("bright"));
         m_settings->registerSetting("BackgroundCat", QString("spaceship-phoebe"));
 
         // Remembered state
@@ -721,7 +721,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("JsonEditor", QString());
 
         // Language
-        m_settings->registerSetting("Language", QString());
+        m_settings->registerSetting("Language", QString("zh"));
         m_settings->registerSetting("UseSystemLocale", false);
 
         // Console
@@ -1386,7 +1386,7 @@ void Application::performMainStartupAction()
         }
     }
     {
-        bool shouldFetch = m_settings->get("FlameKeyShouldBeFetchedOnStartup").toBool();
+        bool shouldFetch = false;
         if (shouldFetch && !(capabilities() & Capability::SupportsFlame)) {
             QMessageBox msgBox{ m_mainWindow };
             msgBox.setWindowTitle(tr("Fetch CurseForge Core API key?"));
@@ -1990,8 +1990,7 @@ bool Application::handleDataMigration(const QString& currentData,
         }
     }
 
-    QMessageBox::StandardButton askMoveDialogue =
-        QMessageBox::question(nullptr, BuildConfig.LAUNCHER_DISPLAYNAME, message, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    QMessageBox::StandardButton askMoveDialogue = QMessageBox::No;
 
     auto setDoNotMigrate = [&nomigratePath] {
         QFile file(nomigratePath);

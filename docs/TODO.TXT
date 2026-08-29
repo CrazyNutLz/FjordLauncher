@@ -2,4 +2,15 @@ AI不要自行修改这个文档里面决定的TODO,此文档只供我自己记�
 
 
 cmake --build --preset windows_msvc --config Debug
+cmake --build --preset windows_msvc --config Release --target FjordLauncher
+cmake --install build --config Release --component portable
 .\build\Debug\fjordlauncher.exe
+
+
+
+
+验证链接：
+https://auth.mc-user.com:233/a000d3f85bc311ea908800163e095b49
+
+账号注册需要打开的链接：
+https://login.mc-user.com:233/a000d3f85bc311ea908800163e095b49/register

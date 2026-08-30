@@ -6,7 +6,7 @@ set(NUTMOD_LAUNCHER_UPDATE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/launcher.json")
 
 # Reserved for the client updater and custom announcements.
 set(NUTMOD_CLIENT_UPDATE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/client.json")
-set(NUTMOD_NOTICE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/notice17.json")
+set(NUTMOD_NOTICE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/notice.json")
 
 # Server and branding configuration.
 set(NUTMOD_AUTH_SERVER_URL "https://auth.mc-user.com:233/a000d3f85bc311ea908800163e095b49")

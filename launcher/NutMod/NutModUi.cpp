@@ -6,11 +6,14 @@
 #include <QFrame>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPushButton>
 #include <QTreeView>
 #include <QVBoxLayout>
 
 #include "NutMod/NutModConfig.h"
+#include "NutMod/NutModBootstrap.h"
+#include "settings/SettingsObject.h"
 #include "ui/widgets/WideBar.h"
 
 namespace NutMod {
@@ -70,6 +73,13 @@ void decorateAboutPage(QVBoxLayout* layout, QWidget* parent)
 
     layout->insertWidget(0, separator);
     layout->insertWidget(0, label);
+}
+
+void addServerNoticeAction(QMenu* menu, QAction* beforeAction, QWidget* parent, SettingsObject* settings)
+{
+    auto* action = new QAction(QStringLiteral("服务器公告"), menu);
+    menu->insertAction(beforeAction, action);
+    QObject::connect(action, &QAction::triggered, parent, [parent, settings]() { checkServerNotices(parent, settings, true); });
 }
 
 void customizeLauncherUpdateDialog(QDialog* dialog, QPushButton* skipButton, QPushButton* delayButton, bool mandatory)

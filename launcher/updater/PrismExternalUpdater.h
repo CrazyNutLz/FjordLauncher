@@ -39,7 +39,7 @@ class PrismExternalUpdater : public ExternalUpdater {
      * Check for updates manually, showing the user a progress bar and an alert if no updates are found.
      */
     void checkForUpdates() override;
-    void checkForUpdates(bool triggeredByUser) const;
+    bool checkForUpdates(bool triggeredByUser) const;
 
     /*!
      * Indicates whether or not to check for updates automatically.
@@ -81,7 +81,7 @@ class PrismExternalUpdater : public ExternalUpdater {
     void disconnectTimer();
     void connectTimer();
 
-    void offerUpdate(const QString& title,
+    bool offerUpdate(const QString& title,
                      const QString& versionTag,
                      const QString& releaseNotes,
                      bool mandatory,

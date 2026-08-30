@@ -1,11 +1,14 @@
 #include "NutModBootstrap.h"
 
 #include "NutMod/NutModConfig.h"
+#include "NutMod/NoticeService.h"
 #include "settings/SettingsObject.h"
 
 namespace NutMod {
 void applyDefaultSettings(SettingsObject* settings)
 {
+    settings->registerSetting("NutModSeenNoticeVersions", QStringList{});
+
     settings->registerSetting("FjordDefaultAppearanceApplied", false);
     if (!settings->get("FjordDefaultAppearanceApplied").toBool()) {
         settings->set("IconTheme", Config::DefaultIconTheme);
@@ -18,6 +21,12 @@ void applyDefaultSettings(SettingsObject* settings)
         settings->set("Language", Config::DefaultLanguage);
         settings->set("FjordDefaultLanguageApplied", true);
     }
+}
+
+void checkServerNotices(QWidget* parent, SettingsObject* settings, bool showAll)
+{
+    auto* service = new NoticeService(parent, settings, parent);
+    service->start(showAll);
 }
 
 bool showMicrosoftLoginWizard()

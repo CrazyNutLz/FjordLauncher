@@ -41,6 +41,7 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "FileSystem.h"
+#include "NutMod/NutModUi.h"
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
@@ -195,6 +196,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         foldersMenuButton->setPopupMode(QToolButton::InstantPopup);
 
         helpMenuButton = dynamic_cast<QToolButton*>(ui->mainToolBar->widgetForAction(ui->actionHelpButton));
+        // NUTMOD INTEGRATION POINT: allow users to reopen the current server notices.
+        NutMod::addServerNoticeAction(ui->helpMenu, ui->actionAbout, this, APPLICATION->settings());
         ui->actionHelpButton->setMenu(new QMenu(this));
         ui->actionHelpButton->menu()->addActions(ui->helpMenu->actions());
         ui->actionHelpButton->menu()->removeAction(ui->actionCheckUpdate);

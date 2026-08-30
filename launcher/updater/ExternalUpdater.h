@@ -71,6 +71,9 @@ class ExternalUpdater : public QObject {
     virtual void setBetaAllowed(bool allowed) = 0;
 
    signals:
+    // NUTMOD INTEGRATION POINT: custom startup services wait for the automatic launcher update check.
+    void startupCheckFinished(bool continueStartup);
+
     /*!
      * Emits whenever the user's ability to check for updates changes.
      *

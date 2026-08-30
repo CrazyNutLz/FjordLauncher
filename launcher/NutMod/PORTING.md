@@ -82,7 +82,17 @@ Q_INIT_RESOURCE(nutmod_translations);
 - `PrismExternalUpdater` 调用 `NutMod::alwaysCheckLauncherUpdatesOnStartup()`，确保每次启动都检查，并通过 `NutMod::allowSkippingLauncherUpdates()` 禁止旧的跳过记录生效。
 - `UpdateAvailableDialog` 调用 `NutMod::customizeLauncherUpdateDialog()`：始终隐藏“跳过该版本”；强制更新时再隐藏“稍后提醒”和标题栏关闭按钮，同时保留 `reject()` 拦截。
 
-## 7. 接入点识别
+## 7. 服务器公告
+
+- 公告地址由 `NUTMOD_NOTICE_MANIFEST_URL` 统一配置，当前使用 `notice.json`。
+- `Application.cpp` 在创建外部更新器后监听 `ExternalUpdater::startupCheckFinished()`；只有启动器更新检查结束且未开始安装时，才调用 `NutMod::checkServerNotices()`。
+- `ExternalUpdater` 增加 `startupCheckFinished(bool)` 信号，`PrismExternalUpdater` 的自动检查完成后发出该信号。
+- `MainWindow.cpp` 调用 `NutMod::addServerNoticeAction()`，在帮助菜单的“关于”前加入手动“服务器公告”入口。
+- 公告解析、网络请求、弹窗和已读状态都位于 `NutMod/Notice*`，原版代码不保存公告 API 或服务器文案。
+
+公告已读状态使用 `NutModSeenNoticeVersions` 字符串列表保存，支持多条 `once` 公告；手动入口会忽略已读状态并显示接口中的所有公告。
+
+## 8. 接入点识别
 
 当前原版文件中的新增挂载位置尽量使用以下注释：
 

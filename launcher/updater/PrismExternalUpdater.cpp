@@ -74,11 +74,13 @@ PrismExternalUpdater::PrismExternalUpdater(QWidget* parent, const QString& appDi
     priv->parent = parent;
     connectTimer();
     if (NutMod::alwaysCheckLauncherUpdatesOnStartup()) {
-        QTimer::singleShot(0, this, [this]() { checkForUpdates(false); });
+        QTimer::singleShot(0, this, [this]() { emit startupCheckFinished(checkForUpdates(false)); });
     } else {
         resetAutoCheckTimer();
         if (priv->updateInterval == 0) {  // "On Launch"
-            checkForUpdates(false);
+            QTimer::singleShot(0, this, [this]() { emit startupCheckFinished(checkForUpdates(false)); });
+        } else {
+            QTimer::singleShot(0, this, [this]() { emit startupCheckFinished(true); });
         }
     }
 }
@@ -98,7 +100,7 @@ void PrismExternalUpdater::checkForUpdates()
     checkForUpdates(true);
 }
 
-void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
+bool PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
 {
     QProgressDialog progress(tr("Checking for updates..."), "", 0, 0, priv->parent);
     progress.setMinimumDuration(0); // Appear immediately without waiting
@@ -143,7 +145,7 @@ void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
         priv->settings->setValue("last_check", priv->lastCheck.toString(Qt::ISODate));
         priv->settings->sync();
         resetAutoCheckTimer();
-        return;
+        return true;
     }
     QCoreApplication::processEvents();
 
@@ -166,7 +168,7 @@ void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
         priv->settings->setValue("last_check", priv->lastCheck.toString(Qt::ISODate));
         priv->settings->sync();
         resetAutoCheckTimer();
-        return;
+        return true;
     }
 
     auto exitCode = proc.exitCode();
@@ -177,6 +179,7 @@ void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
     progress.cancel();
     QCoreApplication::processEvents();
 
+    bool continueStartup = true;
     switch (exitCode) {
         case 0:
             // no update available
@@ -218,7 +221,7 @@ void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
                 qDebug() << "Update available:" << title << versionTag << releaseTimestamp << "mandatory:" << mandatory;
                 qDebug() << "Update release notes:" << releaseNotes;
 
-                offerUpdate(title, versionTag, releaseNotes, mandatory, triggeredByUser);
+                continueStartup = offerUpdate(title, versionTag, releaseNotes, mandatory, triggeredByUser);
             }
             break;
         default:
@@ -242,6 +245,7 @@ void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
     priv->settings->setValue("last_check", priv->lastCheck.toString(Qt::ISODate));
     priv->settings->sync();
     resetAutoCheckTimer();
+    return continueStartup;
 }
 
 bool PrismExternalUpdater::getAutomaticallyChecksForUpdates()
@@ -322,7 +326,7 @@ void PrismExternalUpdater::autoCheckTimerFired() const
     checkForUpdates(false);
 }
 
-void PrismExternalUpdater::offerUpdate(const QString& title,
+bool PrismExternalUpdater::offerUpdate(const QString& title,
                                        const QString& versionTag,
                                        const QString& releaseNotes,
                                        const bool mandatory,
@@ -341,7 +345,7 @@ void PrismExternalUpdater::offerUpdate(const QString& title,
             msgBox.adjustSize();
             msgBox.exec();
         }
-        return;
+        return true;
     }
 
     UpdateAvailableDialog dlg(BuildConfig.printableVersionString(), versionTag, title, releaseNotes, mandatory, priv->parent);
@@ -355,11 +359,16 @@ void PrismExternalUpdater::offerUpdate(const QString& title,
     } else {
         if (result == UpdateAvailableDialog::Install) {
             performUpdate(versionTag);
+            priv->settings->remove(versionTag);
+            priv->settings->endGroup();
+            priv->settings->sync();
+            return false;
         }
         priv->settings->remove(versionTag);
     }
     priv->settings->endGroup();
     priv->settings->sync();
+    return true;
 }
 
 void PrismExternalUpdater::performUpdate(const QString& versionTag) const

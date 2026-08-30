@@ -1421,6 +1421,7 @@ void Application::performMainStartupAction()
     }
 
     // initialize the updater
+    bool noticesWillFollowUpdater = false;
     if (updaterEnabled()) {
         qDebug() << "Initializing updater";
 #ifdef Q_OS_MAC
@@ -1429,8 +1430,18 @@ void Application::performMainStartupAction()
 #endif
 #else
         m_updater.reset(new PrismExternalUpdater(m_mainWindow, m_rootPath, m_dataPath));
+        // NUTMOD INTEGRATION POINT: do not overlap server notices with the launcher update dialog.
+        connect(m_updater.get(), &ExternalUpdater::startupCheckFinished, this, [this](bool continueStartup) {
+            if (continueStartup && m_mainWindow) {
+                NutMod::checkServerNotices(m_mainWindow, m_settings.get());
+            }
+        });
+        noticesWillFollowUpdater = true;
 #endif
         qDebug() << "<> Updater started.";
+    }
+    if (!noticesWillFollowUpdater) {
+        NutMod::checkServerNotices(m_mainWindow, m_settings.get());
     }
 
     {  // delete instances tmp dirctory

@@ -3,9 +3,11 @@
 #include <QString>
 
 class SettingsObject;
+class QWidget;
 
 namespace NutMod {
 void applyDefaultSettings(SettingsObject* settings);
+void checkServerNotices(QWidget* parent, SettingsObject* settings, bool showAll = false);
 
 bool showMicrosoftLoginWizard();
 bool fetchCurseForgeKeyOnStartup();

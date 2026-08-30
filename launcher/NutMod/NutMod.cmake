@@ -10,6 +10,12 @@ configure_file(
 set(NUTMOD_LOGIC_SOURCES
     NutMod/NutModBootstrap.h
     NutMod/NutModBootstrap.cpp
+    NutMod/NoticeDialog.h
+    NutMod/NoticeDialog.cpp
+    NutMod/NoticeManifest.h
+    NutMod/NoticeManifest.cpp
+    NutMod/NoticeService.h
+    NutMod/NoticeService.cpp
     NutMod/NutModUi.h
     NutMod/NutModUi.cpp
 )

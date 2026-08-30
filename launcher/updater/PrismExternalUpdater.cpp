@@ -126,12 +126,14 @@ void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
         auto err = proc.error();
         qDebug() << "Failed to start updater after 5 seconds."
                  << "reason:" << err << proc.errorString();
-        auto msgBox =
-            QMessageBox(QMessageBox::Information, tr("Update Check Failed"),
-                        tr("Failed to start after 5 seconds\nReason: %1.").arg(proc.errorString()), QMessageBox::Ok, priv->parent);
-        msgBox.setMinimumWidth(460);
-        msgBox.adjustSize();
-        msgBox.exec();
+        if (triggeredByUser) {
+            auto msgBox =
+                QMessageBox(QMessageBox::Information, tr("Update Check Failed"),
+                            tr("Failed to start after 5 seconds\nReason: %1.").arg(proc.errorString()), QMessageBox::Ok, priv->parent);
+            msgBox.setMinimumWidth(460);
+            msgBox.adjustSize();
+            msgBox.exec();
+        }
         priv->lastCheck = QDateTime::currentDateTime();
         priv->settings->setValue("last_check", priv->lastCheck.toString(Qt::ISODate));
         priv->settings->sync();
@@ -146,13 +148,15 @@ void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
         auto output = proc.readAll();
         qDebug() << "Updater failed to close after 60 seconds."
                  << "reason:" << err << proc.errorString();
-        auto msgBox =
-            QMessageBox(QMessageBox::Information, tr("Update Check Failed"),
-                        tr("Updater failed to close 60 seconds\nReason: %1.").arg(proc.errorString()), QMessageBox::Ok, priv->parent);
-        msgBox.setDetailedText(output);
-        msgBox.setMinimumWidth(460);
-        msgBox.adjustSize();
-        msgBox.exec();
+        if (triggeredByUser) {
+            auto msgBox =
+                QMessageBox(QMessageBox::Information, tr("Update Check Failed"),
+                            tr("Updater failed to close 60 seconds\nReason: %1.").arg(proc.errorString()), QMessageBox::Ok, priv->parent);
+            msgBox.setDetailedText(output);
+            msgBox.setMinimumWidth(460);
+            msgBox.adjustSize();
+            msgBox.exec();
+        }
         priv->lastCheck = QDateTime::currentDateTime();
         priv->settings->setValue("last_check", priv->lastCheck.toString(Qt::ISODate));
         priv->settings->sync();
@@ -184,41 +188,49 @@ void PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
             // there was an error
             {
                 qDebug() << "Updater subprocess error" << qPrintable(stdError);
-                auto msgBox = QMessageBox(QMessageBox::Warning, tr("Update Check Error"),
-                                          tr("There was an error running the update check."), QMessageBox::Ok, priv->parent);
-                msgBox.setDetailedText(QString(stdError));
-                msgBox.setMinimumWidth(460);
-                msgBox.adjustSize();
-                msgBox.exec();
+                if (triggeredByUser) {
+                    auto msgBox = QMessageBox(QMessageBox::Warning, tr("Update Check Error"),
+                                              tr("There was an error running the update check."), QMessageBox::Ok, priv->parent);
+                    msgBox.setDetailedText(QString(stdError));
+                    msgBox.setMinimumWidth(460);
+                    msgBox.adjustSize();
+                    msgBox.exec();
+                }
             }
             break;
         case 100:
             // update available
             {
+                // NUTMOD INTEGRATION POINT: title/version/mandatory are emitted by the custom updater check.
                 auto [firstLine, remainder1] = StringUtils::splitFirst(stdOutput, '\n');
                 auto [secondLine, remainder2] = StringUtils::splitFirst(remainder1, '\n');
-                auto [thirdLine, releaseNotes] = StringUtils::splitFirst(remainder2, '\n');
-                auto versionName = StringUtils::splitFirst(firstLine, ": ").second.trimmed();
+                auto [thirdLine, remainder3] = StringUtils::splitFirst(remainder2, '\n');
+                auto [fourthLine, releaseNotes] = StringUtils::splitFirst(remainder3, '\n');
+                auto title = StringUtils::splitFirst(firstLine, ": ").second.trimmed();
                 auto versionTag = StringUtils::splitFirst(secondLine, ": ").second.trimmed();
                 auto releaseTimestamp = QDateTime::fromString(StringUtils::splitFirst(thirdLine, ": ").second.trimmed(), Qt::ISODate);
-                qDebug() << "Update available:" << versionName << versionTag << releaseTimestamp;
+                auto mandatory = StringUtils::splitFirst(fourthLine, ": ").second.trimmed().compare("true", Qt::CaseInsensitive) == 0;
+                qDebug() << "Update available:" << title << versionTag << releaseTimestamp << "mandatory:" << mandatory;
                 qDebug() << "Update release notes:" << releaseNotes;
 
-                offerUpdate(versionName, versionTag, releaseNotes, triggeredByUser);
+                offerUpdate(title, versionTag, releaseNotes, mandatory, triggeredByUser);
             }
             break;
         default:
             // unknown error code
             {
                 qDebug() << "Updater exited with unknown code" << exitCode;
-                auto msgBox = QMessageBox(QMessageBox::Information, tr("Unknown Update Error"),
-                                          tr("The updater exited with an unknown condition.\nExit Code: %1").arg(QString::number(exitCode)),
-                                          QMessageBox::Ok, priv->parent);
-                auto detailTxt = tr("StdOut: %1\nStdErr: %2").arg(QString(stdOutput)).arg(QString(stdError));
-                msgBox.setDetailedText(detailTxt);
-                msgBox.setMinimumWidth(460);
-                msgBox.adjustSize();
-                msgBox.exec();
+                if (triggeredByUser) {
+                    auto msgBox =
+                        QMessageBox(QMessageBox::Information, tr("Unknown Update Error"),
+                                    tr("The updater exited with an unknown condition.\nExit Code: %1").arg(QString::number(exitCode)),
+                                    QMessageBox::Ok, priv->parent);
+                    auto detailTxt = tr("StdOut: %1\nStdErr: %2").arg(QString(stdOutput)).arg(QString(stdError));
+                    msgBox.setDetailedText(detailTxt);
+                    msgBox.setMinimumWidth(460);
+                    msgBox.adjustSize();
+                    msgBox.exec();
+                }
             }
     }
     priv->lastCheck = QDateTime::currentDateTime();
@@ -305,13 +317,14 @@ void PrismExternalUpdater::autoCheckTimerFired() const
     checkForUpdates(false);
 }
 
-void PrismExternalUpdater::offerUpdate(const QString& versionName,
+void PrismExternalUpdater::offerUpdate(const QString& title,
                                        const QString& versionTag,
                                        const QString& releaseNotes,
+                                       const bool mandatory,
                                        const bool triggeredByUser) const
 {
     priv->settings->beginGroup("skip");
-    auto shouldSkip = !triggeredByUser && priv->settings->value(versionTag, false).toBool();
+    auto shouldSkip = !mandatory && !triggeredByUser && priv->settings->value(versionTag, false).toBool();
     priv->settings->endGroup();
 
     if (shouldSkip) {
@@ -325,7 +338,7 @@ void PrismExternalUpdater::offerUpdate(const QString& versionName,
         return;
     }
 
-    UpdateAvailableDialog dlg(BuildConfig.printableVersionString(), versionName, releaseNotes);
+    UpdateAvailableDialog dlg(BuildConfig.printableVersionString(), versionTag, title, releaseNotes, mandatory, priv->parent);
 
     auto result = dlg.exec();
     qDebug() << "offer dlg result" << result;

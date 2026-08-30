@@ -191,11 +191,17 @@ set(Launcher_VERSION_NAME4_COMMA "${Launcher_VERSION_MAJOR},${Launcher_VERSION_M
 # Build platform.
 set(Launcher_BUILD_PLATFORM "unknown" CACHE STRING "A short string identifying the platform that this build was built for. Only used to display in the about dialog.")
 
-# Github repo URL with releases for updater
-set(Launcher_UPDATER_GITHUB_REPO "https://github.com/unmojang/FjordLauncher" CACHE STRING "Base github URL for the updater.")
+# NUTMOD INTEGRATION POINT: load custom endpoint and branding configuration.
+include("${CMAKE_CURRENT_SOURCE_DIR}/launcher/NutMod/NutModConfig.cmake")
+
+# Launcher update manifest URL
+set(Launcher_UPDATER_GITHUB_REPO "${NUTMOD_LAUNCHER_UPDATE_MANIFEST_URL}" CACHE STRING "Update manifest URL." FORCE)
 
 # Name to help updater identify valid artifacts
 set(Launcher_BUILD_ARTIFACT "" CACHE STRING "Artifact name to help the updater identify valid artifacts.")
+if(WIN32 AND Launcher_BUILD_ARTIFACT STREQUAL "")
+    set(Launcher_BUILD_ARTIFACT "windows-x64")
+endif()
 
 # The metadata server
 set(Launcher_META_URL "https://meta.unmojang.org/v1/" CACHE STRING "URL to fetch Launcher's meta files from.")

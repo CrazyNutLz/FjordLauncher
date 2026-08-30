@@ -92,7 +92,7 @@
   </action>
   <action name="actionAddAuthlibInjector">
    <property name="text">
-    <string>添加雕版账号</string>
+    <string>Add authlib-&amp;injector</string>
    </property>
   </action>
   <action name="actionAddOffline">

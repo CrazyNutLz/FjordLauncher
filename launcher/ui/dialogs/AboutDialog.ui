@@ -108,32 +108,6 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <widget class="QLabel" name="customIntroLabel">
-         <property name="text">
-          <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;b&gt;飞翔的大雕 GTNH 公益服务器专用启动器&lt;/b&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;本启动器由飞翔的大雕服主（@CrazyNut）基于 Fjord Launcher 魔改，专为大雕 GTNH 公益服务器定制。&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;公益服的长期运营离不开大家的支持。欢迎自愿投喂服主；无论金额多少，都是对服务器的鼓励。收到的所有赞助都将用于服务器升级与日常维护。有你们的支持，公益服才能走得更稳、更远。&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;服主 QQ:736190890　　服务器群:629995845&lt;br/&gt;服务器官网：&lt;a href=&quot;https://nutnode.top/&quot;&gt;访问官网&lt;/a&gt;　　赞助名单：&lt;a href=&quot;https://docs.qq.com/sheet/DSmZ0VXVxVUZaSE9u&quot;&gt;点击查看&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-         <property name="openExternalLinks">
-          <bool>true</bool>
-         </property>
-         <property name="textInteractionFlags">
-          <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="Line" name="customIntroLine">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="aboutLabel">
          <property name="enabled">
           <bool>true</bool>

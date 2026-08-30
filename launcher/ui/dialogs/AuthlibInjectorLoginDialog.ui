@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>登录雕版账号</string>
+   <string>Add Account</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -39,7 +39,7 @@
    <item>
     <widget class="QLineEdit" name="userTextBox">
      <property name="placeholderText">
-      <string>通行证账号或邮箱（不是游戏ID）</string>
+      <string>Email/username</string>
      </property>
     </widget>
    </item>
@@ -49,7 +49,7 @@
       <enum>QLineEdit::Password</enum>
      </property>
      <property name="placeholderText">
-      <string>密码</string>
+      <string>Password</string>
      </property>
     </widget>
    </item>
@@ -70,7 +70,7 @@
       </font>
       </property>
       <property name="text">
-      <string>正在登录，请稍候……</string>
+      <string>Please wait...</string>
       </property>
       <property name="alignment">
       <set>Qt::AlignCenter</set>

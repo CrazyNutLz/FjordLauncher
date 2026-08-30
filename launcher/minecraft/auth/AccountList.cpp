@@ -34,6 +34,7 @@
  */
 
 #include "AccountList.h"
+#include "NutMod/NutModBootstrap.h"
 #include "AccountData.h"
 #include "tasks/Task.h"
 
@@ -357,10 +358,8 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
                 case NameColumn:
                     return account->accountDisplayString();
                 case TypeColumn: {
-                    if (account->accountType() == AccountType::AuthlibInjector) {
-                        return tr("雕版账号");
-                    }
-                    return account->typeDisplayName();
+                    return NutMod::accountTypeDisplayName(account->accountType() == AccountType::AuthlibInjector,
+                                                          account->typeDisplayName());
                 }
                 case AuthServerColumn: {
                     return account->authlibInjectorUrl();

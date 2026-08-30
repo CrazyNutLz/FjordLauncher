@@ -38,8 +38,10 @@ struct GitHubReleaseAsset {
     QDateTime created_at;
     QDateTime updated_at;
     QString browser_download_url;
+    // NUTMOD INTEGRATION POINT: integrity supplied by the custom manifest.
+    QString sha256;
 
-    bool isValid() { return id > 0; }
+    bool isValid() const { return id > 0; }
 };
 
 struct GitHubRelease {
@@ -50,6 +52,8 @@ struct GitHubRelease {
     QDateTime published_at;
     bool prerelease;
     bool draft;
+    // NUTMOD INTEGRATION POINT: server-controlled mandatory update policy.
+    bool mandatory = false;
     QString body;
     QList<GitHubReleaseAsset> assets;
     Version version;

@@ -1,5 +1,8 @@
 project(application)
 
+# NUTMOD INTEGRATION POINT: register all custom module sources and resources.
+include(NutMod/NutMod.cmake)
+
 ################################ FILES ################################
 
 ######## Sources and headers ########
@@ -627,6 +630,8 @@ set(LINKEXE_SOURCES
 )
 
 set(PRISMUPDATER_SOURCES
+    ${NUTMOD_UPDATER_SOURCES}
+
     updater/prismupdater/PrismUpdater.h
     updater/prismupdater/PrismUpdater.cpp
     updater/prismupdater/UpdaterDialogs.h
@@ -780,6 +785,7 @@ endif()
 ################################ COMPILE ################################
 
 set(LOGIC_SOURCES
+    ${NUTMOD_LOGIC_SOURCES}
     ${CORE_SOURCES}
     ${NET_SOURCES}
     ${LAUNCH_SOURCES}
@@ -1319,7 +1325,7 @@ qt_add_resources(LAUNCHER_RESOURCES
     resources/flat_white/flat_white.qrc
     resources/documents/documents.qrc
     resources/shaders/shaders.qrc
-    resources/translations/translations.qrc
+    ${NUTMOD_RESOURCES}
     "${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_LogoQRC}"
 )
 

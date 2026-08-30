@@ -17,29 +17,27 @@
  */
 
 #include "AuthlibInjectorLoginDialog.h"
+#include "ui/dialogs/CustomMessageBox.h"
 #include "ui_AuthlibInjectorLoginDialog.h"
 
 #include "Application.h"
 #include "GetAuthlibInjectorApiLocation.h"
+#include "NutMod/NutModBootstrap.h"
+#include "NutMod/NutModUi.h"
 
 #include <QtWidgets/QPushButton>
-
-namespace {
-const QString kAuthlibInjectorUrl = QStringLiteral("https://auth.mc-user.com:233/a000d3f85bc311ea908800163e095b49");
-}
 
 AuthlibInjectorLoginDialog::AuthlibInjectorLoginDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AuthlibInjectorLoginDialog)
 {
     ui->setupUi(this);
-    ui->authlibInjectorTextBox->setText(kAuthlibInjectorUrl);
-    ui->authlibInjectorTextBox->setVisible(false);
+    setAcceptDrops(true);
+    // NUTMOD INTEGRATION POINT: apply the dedicated server login presentation.
+    NutMod::customizeAuthlibLoginDialog(this, ui->userTextBox, ui->passTextBox, ui->authlibInjectorTextBox, ui->loadingLabel,
+                                        ui->buttonBox);
     ui->userTextBox->setFocus();
     ui->loadingLabel->setVisible(false);
     ui->errorMessage->setVisible(false);
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setText(QStringLiteral("登录"));
-    ui->buttonBox->button(QDialogButtonBox::Cancel)->setText(QStringLiteral("取消"));
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    setAcceptDrops(false);
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -99,7 +97,21 @@ void AuthlibInjectorLoginDialog::dropEvent(QDropEvent* event)
 void AuthlibInjectorLoginDialog::accept()
 {
     ui->errorMessage->setVisible(false);
-    const auto fixedAuthlibInjectorUrl = kAuthlibInjectorUrl;
+    const auto fixedAuthlibInjectorUrl = NutMod::authServerUrl();
+
+    if (NutMod::confirmThirdPartyAuthenticationServer()) {
+        auto response = CustomMessageBox::selectable(this, QObject::tr("Confirm account creation"),
+                                                     QObject::tr("Warning: you are about to send the username and password you entered to an "
+                                                                 "unofficial, third-party authentication server:\n"
+                                                                 "%1\n\n"
+                                                                 "Never use your Mojang or Microsoft password for a third-party account!\n\n"
+                                                                 "Are you sure you want to proceed?")
+                                                         .arg(fixedAuthlibInjectorUrl),
+                                                     QMessageBox::Warning, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+                            ->exec();
+        if (response != QMessageBox::Yes)
+            return;
+    }
 
     setUserInputsEnabled(false);
     ui->loadingLabel->setVisible(true);

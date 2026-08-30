@@ -21,7 +21,11 @@
  */
 
 #include "PrismUpdater.h"
+
+#include <QCryptographicHash>
+#include <QFile>
 #include "BuildConfig.h"
+#include "NutMod/LauncherUpdateManifest.h"
 #include "ui/dialogs/ProgressDialog.h"
 
 #include <cstdlib>
@@ -405,7 +409,7 @@ void PrismUpdaterApp::showFatalErrorMessage(const QString& title, const QString&
 
 void PrismUpdaterApp::run()
 {
-    qDebug() << "found" << m_releases.length() << "releases on github";
+    qDebug() << "found" << m_releases.length() << "launcher releases";
     qDebug() << "loading exe at" << m_prismExecutable;
 
     if (m_printOnly) {
@@ -443,6 +447,7 @@ void PrismUpdaterApp::run()
             stdOutStream << "Name: " << latest.name << "\n";
             stdOutStream << "Version: " << latest.tag_name << "\n";
             stdOutStream << "TimeStamp: " << latest.created_at.toString(Qt::ISODate) << "\n";
+            stdOutStream << "Mandatory: " << (latest.mandatory ? "true" : "false") << "\n";
             stdOutStream << latest.body << "\n";
             stdOutStream.flush();
 
@@ -658,6 +663,10 @@ GitHubRelease PrismUpdaterApp::selectRelease()
 
 QList<GitHubReleaseAsset> PrismUpdaterApp::validReleaseArtifacts(const GitHubRelease& release)
 {
+    if (m_prismRepoUrl.host().compare("github.com", Qt::CaseInsensitive) != 0) {
+        return release.assets;
+    }
+
     QList<GitHubReleaseAsset> valid;
 
     qDebug() << "Selecting best asset from" << release.tag_name << "for platform" << BuildConfig.BUILD_ARTIFACT
@@ -762,6 +771,13 @@ void PrismUpdaterApp::performUpdate(const GitHubRelease& release)
         return showFatalErrorMessage(tr("Failed to Download"), tr("Failed to download the selected asset."));
     }
 
+    // NUTMOD INTEGRATION POINT: never install an artifact that fails the manifest hash.
+    if (!verifyAssetSha256(file, selected_asset.sha256)) {
+        QFile::remove(file.absoluteFilePath());
+        return showFatalErrorMessage(tr("Update Verification Failed"),
+                                     tr("The downloaded update package failed SHA-256 verification and has been deleted."));
+    }
+
     performInstall(file);
 }
 
@@ -783,6 +799,31 @@ QFileInfo PrismUpdaterApp::downloadAsset(const GitHubReleaseAsset& asset)
 
     QFileInfo out_file(out_file_path);
     return out_file;
+}
+
+bool PrismUpdaterApp::verifyAssetSha256(const QFileInfo& file, const QString& expectedSha256)
+{
+    if (expectedSha256.isEmpty()) {
+        qWarning() << "The update manifest does not contain a SHA-256 value.";
+        return false;
+    }
+
+    QFile input(file.absoluteFilePath());
+    if (!input.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open downloaded update package for verification:" << input.errorString();
+        return false;
+    }
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    if (!hash.addData(&input)) {
+        qWarning() << "Failed to calculate SHA-256 for" << file.absoluteFilePath();
+        return false;
+    }
+
+    const auto actualSha256 = QString::fromLatin1(hash.result().toHex());
+    const auto normalizedExpected = expectedSha256.trimmed();
+    qDebug() << "Update package SHA-256 expected:" << normalizedExpected << "actual:" << actualSha256;
+    return actualSha256.compare(normalizedExpected, Qt::CaseInsensitive) == 0;
 }
 
 bool PrismUpdaterApp::callAppImageUpdate()
@@ -923,10 +964,26 @@ void PrismUpdaterApp::performInstall(QFileInfo file)
 
 void PrismUpdaterApp::unpackAndInstall(QFileInfo archive)
 {
-    logUpdate(tr("Backing up install"));
-    backupAppDir();
-
     if (auto loc = unpackArchive(archive)) {
+        auto updaterName = QStringLiteral("%1_updater").arg(BuildConfig.LAUNCHER_APP_BINARY_NAME);
+#if defined Q_OS_WIN32
+        updaterName.append(".exe");
+#else
+        updaterName.prepend("bin/");
+#endif
+        const auto hasUpdater = QFileInfo(loc->absoluteFilePath(updaterName)).isFile();
+        const auto hasManifest = QFileInfo(loc->absoluteFilePath("manifest.txt")).isFile();
+        if (!hasUpdater || !hasManifest) {
+            const auto updateLockPath = FS::PathCombine(m_dataPath, ".prism_launcher_update.lock");
+            FS::deletePath(updateLockPath);
+            showFatalErrorMessage(tr("Invalid Update Package"),
+                                  tr("The downloaded archive must contain %1 and manifest.txt in its root directory.").arg(updaterName));
+            return;
+        }
+
+        logUpdate(tr("Backing up install"));
+        backupAppDir();
+
         auto marker_file_path = loc.value().absoluteFilePath(".prism_launcher_updater_unpack.marker");
         FS::write(marker_file_path, m_rootPath.toUtf8());
 
@@ -1054,6 +1111,7 @@ void PrismUpdaterApp::backupAppDir()
 std::optional<QDir> PrismUpdaterApp::unpackArchive(QFileInfo archive)
 {
     auto temp_extract_path = FS::PathCombine(m_dataPath, "prism_launcher_update_release");
+    FS::deletePath(temp_extract_path);
     FS::ensureFolderPathExists(temp_extract_path);
     auto tmp_extract_dir = QDir(temp_extract_path);
 
@@ -1128,8 +1186,26 @@ bool PrismUpdaterApp::loadPrismVersionFromExe(const QString& exe_path)
 void PrismUpdaterApp::loadReleaseList()
 {
     auto github_repo = m_prismRepoUrl;
-    if (github_repo.host() != "github.com")
-        return fail("updating from a non github url is not supported");
+    // NUTMOD INTEGRATION POINT: custom servers expose one compact launcher manifest instead of GitHub releases.
+    if (github_repo.host().compare("github.com", Qt::CaseInsensitive) != 0) {
+        const auto manifestUrl = github_repo.toString();
+        qDebug() << "Fetching launcher update manifest from" << manifestUrl;
+
+        auto [download, response] = Net::Download::makeByteArray(manifestUrl);
+        download->setNetwork(m_network.get());
+        m_current_url = manifestUrl;
+
+        connect(download.get(), &Net::Download::succeeded, this, [this, response]() {
+            if (parseCustomUpdateManifest(response)) {
+                run();
+            }
+        });
+        connect(download.get(), &Net::Download::failed, this, &PrismUpdaterApp::downloadError);
+
+        m_current_task.reset(download);
+        QMetaObject::invokeMethod(download.get(), &Task::start, Qt::QueuedConnection);
+        return;
+    }
 
     auto path_parts = github_repo.path().split('/');
     path_parts.removeFirst();  // empty segment from leading /
@@ -1140,6 +1216,39 @@ void PrismUpdaterApp::loadReleaseList()
     qDebug() << "Fetching release list from" << api_url;
 
     downloadReleasePage(api_url, 1);
+}
+
+bool PrismUpdaterApp::parseCustomUpdateManifest(const QByteArray* response)
+{
+    NutMod::LauncherUpdateManifest manifest;
+    QString error;
+    if (!NutMod::parseLauncherUpdateManifest(*response, manifest, error)) {
+        fail(error);
+        return false;
+    }
+
+    GitHubRelease release = {};
+    release.id = 1;
+    release.tag_name = manifest.version;
+    release.name = manifest.title.isEmpty() ? manifest.version : manifest.title;
+    release.body = manifest.notes;
+    release.created_at = manifest.publishedAt;
+    release.published_at = manifest.publishedAt;
+    release.draft = false;
+    release.prerelease = false;
+    release.mandatory = manifest.mandatory;
+    release.version = Version(manifest.version);
+
+    GitHubReleaseAsset artifact = {};
+    artifact.id = 1;
+    artifact.name = manifest.artifact.fileName;
+    artifact.browser_download_url = manifest.artifact.url;
+    artifact.sha256 = manifest.artifact.sha256;
+    artifact.content_type = "application/zip";
+
+    release.assets.append(artifact);
+    m_releases.append(release);
+    return true;
 }
 
 void PrismUpdaterApp::downloadReleasePage(const QString& api_url, int page)

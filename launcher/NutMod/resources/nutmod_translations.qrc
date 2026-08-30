@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/translations">
+    <qresource prefix="/nutmod/translations">
         <file alias="zh.po">zh.po</file>
     </qresource>
 </RCC>

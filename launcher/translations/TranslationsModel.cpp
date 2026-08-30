@@ -43,6 +43,7 @@
 #include "BuildConfig.h"
 #include "FileSystem.h"
 #include "Json.h"
+#include "NutMod/NutModBootstrap.h"
 #include "net/ChecksumValidator.h"
 #include "net/NetJob.h"
 
@@ -180,11 +181,21 @@ TranslationsModel::TranslationsModel(const QString& path, QObject* parent) : QAb
     d = std::make_unique<Private>();
     d->m_dir.setPath(path);
     d->m_selectedLanguage = APPLICATION->settings()->get("Language").toString();
-    Language localChinese("zh");
-    localChinese.localFileType = FileType::Po;
-    localChinese.updated = true;
-    d->m_languages.append(localChinese);
-    selectLanguage(d->m_selectedLanguage);
+    if (NutMod::useBundledChineseTranslation()) {
+        // NUTMOD INTEGRATION POINT: expose only the bundled Simplified Chinese translation.
+        Language localChinese("zh");
+        localChinese.localFileType = FileType::Po;
+        localChinese.updated = true;
+        d->m_languages.append(localChinese);
+        selectLanguage(d->m_selectedLanguage);
+    } else {
+        FS::ensureFolderPathExists(path);
+        reloadLocalFiles();
+
+        d->watcher = new QFileSystemWatcher(this);
+        connect(d->watcher, &QFileSystemWatcher::directoryChanged, this, &TranslationsModel::translationDirChanged);
+        d->watcher->addPath(d->m_dir.canonicalPath());
+    }
 }
 
 TranslationsModel::~TranslationsModel() = default;
@@ -501,7 +512,8 @@ bool TranslationsModel::selectLanguage(QString key) const
 
     if (langPtr->localFileType == FileType::Po) {
         qDebug() << "Loading Application Language File for" << langCode.toLocal8Bit().constData() << "...";
-        const auto path = langCode == "zh" ? QString(":/translations/zh.po") : FS::PathCombine(d->m_dir.path(), langCode + ".po");
+        const auto bundledPath = NutMod::bundledTranslationPath(langCode);
+        const auto path = bundledPath.isEmpty() ? FS::PathCombine(d->m_dir.path(), langCode + ".po") : bundledPath;
         d->m_appTranslator = std::make_unique<POTranslator>(path);
         if (!d->m_appTranslator->isEmpty()) {
             if (!QCoreApplication::installTranslator(d->m_appTranslator.get())) {
@@ -550,7 +562,23 @@ QString TranslationsModel::selectedLanguage() const
 
 void TranslationsModel::downloadIndex()
 {
-    return;
+    if (!NutMod::allowRemoteTranslationUpdates()) {
+        return;
+    }
+    if (d->m_indexJob || d->m_downloadJob) {
+        return;
+    }
+    qDebug() << "Downloading Translations Index...";
+    d->m_indexJob.reset(new NetJob("Translations Index", APPLICATION->network()));
+    const MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("translations", "index_v2.json");
+    entry->setStale(true);
+    auto task = Net::Download::makeCached(QUrl(BuildConfig.TRANSLATION_FILES_URL + "index_v2.json"), entry);
+    d->m_indexTask = task.get();
+    d->m_indexJob->addNetAction(task);
+    d->m_indexJob->setAskRetry(false);
+    connect(d->m_indexJob.get(), &NetJob::failed, this, &TranslationsModel::indexFailed);
+    connect(d->m_indexJob.get(), &NetJob::succeeded, this, &TranslationsModel::indexReceived);
+    d->m_indexJob->start();
 }
 
 void TranslationsModel::updateLanguage(const QString& key)

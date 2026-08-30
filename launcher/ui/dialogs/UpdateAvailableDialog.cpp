@@ -29,15 +29,17 @@
 
 UpdateAvailableDialog::UpdateAvailableDialog(const QString& currentVersion,
                                              const QString& availableVersion,
+                                             const QString& title,
                                              const QString& releaseNotes,
+                                             bool mandatory,
                                              QWidget* parent)
-    : QDialog(parent), ui(new Ui::UpdateAvailableDialog)
+    : QDialog(parent), ui(new Ui::UpdateAvailableDialog), m_mandatory(mandatory)
 {
     ui->setupUi(this);
 
     QString launcherName = BuildConfig.LAUNCHER_DISPLAYNAME;
 
-    ui->headerLabel->setText(tr("A new version of %1 is available!").arg(launcherName));
+    ui->headerLabel->setText(title.isEmpty() ? tr("A new version of %1 is available!").arg(launcherName) : title);
     ui->versionAvailableLabel->setText(
         tr("Version %1 is now available - you have %2 . Would you like to download it now?").arg(availableVersion).arg(currentVersion));
     ui->icon->setPixmap(QIcon::fromTheme("checkupdate").pixmap(64));
@@ -45,6 +47,12 @@ UpdateAvailableDialog::UpdateAvailableDialog(const QString& currentVersion,
     auto releaseNotesHtml = markdownToHTML(releaseNotes);
     ui->releaseNotes->setHtml(StringUtils::htmlListPatch(releaseNotesHtml));
     ui->releaseNotes->setOpenExternalLinks(true);
+
+    // NUTMOD INTEGRATION POINT: mandatory releases cannot be skipped or postponed.
+    if (m_mandatory) {
+        ui->skipButton->hide();
+        ui->delayButton->hide();
+    }
 
     connect(ui->skipButton, &QPushButton::clicked, this, [this]() {
         setResult(ResultCode::Skip);
@@ -60,4 +68,11 @@ UpdateAvailableDialog::UpdateAvailableDialog(const QString& currentVersion,
         setResult(ResultCode::Install);
         done(ResultCode::Install);
     });
+}
+
+void UpdateAvailableDialog::reject()
+{
+    if (!m_mandatory) {
+        QDialog::reject();
+    }
 }

@@ -1,3 +1,4 @@
+# NutMod bundled Simplified Chinese translation.
 msgid ""
 msgstr ""
 "MIME-Version: 1.0\n"

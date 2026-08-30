@@ -104,7 +104,8 @@ Config::Config()
     } else {
         VERSION_CHANNEL = "unknown";
     }
-    VERSION_CHANNEL = "DaDiaoVersion";
+    // NUTMOD INTEGRATION POINT: use the custom launcher channel configured by NutMod.
+    VERSION_CHANNEL = "@NUTMOD_VERSION_CHANNEL@";
 
     NEWS_RSS_URL = "@Launcher_NEWS_RSS_URL@";
     NEWS_OPEN_URL = "@Launcher_NEWS_OPEN_URL@";

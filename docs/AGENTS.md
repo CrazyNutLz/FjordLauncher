@@ -24,6 +24,28 @@ This project is a custom GTNH server launcher based on Fjord Launcher.
 - Only modify code that is necessary for the requested task.
 - After modifying C++ or Qt code, compile the project and fix compilation errors introduced by the modification before considering the task complete.
 
+## NutMod customization boundary
+
+Server-specific features belong in `launcher/NutMod` whenever practical. This includes:
+
+- API endpoints and server URLs.
+- Branding text and custom UI decoration.
+- Custom authentication policy and presentation.
+- Launcher update manifest parsing.
+- Client update implementation.
+- Custom announcements.
+- Bundled server-specific translation resources.
+
+Keep changes to original Fjord files as small integration points that call into NutMod. Mark those locations with:
+
+```cpp
+// NUTMOD INTEGRATION POINT: ...
+```
+
+Do not place frequently changed URLs or server branding directly in original Fjord source files. Put them in `launcher/NutMod/NutModConfig.cmake`.
+
+When adding or changing an integration point, update `launcher/NutMod/PORTING.md`. The intended migration workflow is to copy the complete `launcher/NutMod` directory into a newer Fjord source tree and reapply only the documented integration points.
+
 ## Modification standards
 
 ### General rule

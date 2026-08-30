@@ -38,6 +38,7 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "Markdown.h"
+#include "NutMod/NutModUi.h"
 #include "StringUtils.h"
 #include "ui_AboutDialog.h"
 
@@ -81,6 +82,8 @@ QString getLicenseHtml()
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AboutDialog)
 {
     ui->setupUi(this);
+    // NUTMOD INTEGRATION POINT: insert server branding without modifying the Qt Designer file.
+    NutMod::decorateAboutPage(ui->verticalLayout_5, this);
 
     QString launcherName = BuildConfig.LAUNCHER_DISPLAYNAME;
 

@@ -64,6 +64,7 @@ class PrismUpdaterApp : public QApplication {
 
     void downloadReleasePage(const QString& api_url, int page);
     int parseReleasePage(const QByteArray* response);
+    bool parseCustomUpdateManifest(const QByteArray* response);
 
     bool needUpdate(const GitHubRelease& release);
 
@@ -83,6 +84,7 @@ class PrismUpdaterApp : public QApplication {
     std::optional<QDir> unpackArchive(QFileInfo file);
 
     QFileInfo downloadAsset(const GitHubReleaseAsset& asset);
+    bool verifyAssetSha256(const QFileInfo& file, const QString& expectedSha256);
     bool callAppImageUpdate();
 
     void moveAndFinishUpdate(QDir target);

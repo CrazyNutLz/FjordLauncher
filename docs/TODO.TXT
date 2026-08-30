@@ -7,5 +7,35 @@ cmake --install build --config Release --component portable
 .\build\Debug\fjordlauncher.exe
 
 
-移除原版的自动更新，改为自己的自动更新
+现在界面修改的差不多了，我要开始魔改启动器的一些功能，主要为 启动器更新/客户端文件更新/自定义公告
+
+以下这个文档是我以前魔改PCL时候的一些做法
+docs\ModNut_更新与公告功能移植说明.md
+
+你可以看这个MD作为参考，但不要完全照搬，因为PCL的一些接口和现在的并不兼容，你只需要参考思路（你有更好的思路也行）
+然后这个启动器的相关API链接 我已经在服务器上迁移到了类似：https://nutnode.top/software/fjrod-java25/notice17.json 这样的链接
+
+接下来，我们先就启动器更新这块功能进行讨论，你看看现在fjord的启动器更新检测方式，我怎么做更容易
+
+
+size没啥必要把 有SHA-256就行了
+然后服务端处我已经准备好了这个文件
+https://nutnode.top/software/fjrod-java25/launcher.json
+
+内容为：
+{
+  "schemaVersion": 1,
+  "version": "11.0.3.2",
+  "title": "发现启动器新版本",
+  "notes": "1. 修复部分界面显示问题\n2. 优化启动器更新功能",
+  "publishedAt": "2026-08-30T15:00:00+08:00",
+  "mandatory": false,
+  "artifact": {
+    "fileName": "world 1450.zip",
+    "url": "http://47.102.195.80:5244/d/Share1/temp/world%201450.zip?sign=yV-KojaR8gL9n_JY5SUtdv64c1KfxjAjzYKrupdrzD4=:0",
+    "sha256": "CC4AE924139A41D131114CDCDB5307CC0995D5430321C2AE35465A0AF2A8FA6C"
+  }
+}
+
+当然这只是一个测试压缩包 ,其他的就按你设计的,先进行修改进行测试
 

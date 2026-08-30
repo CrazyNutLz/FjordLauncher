@@ -49,7 +49,8 @@ int main(int argc, char* argv[])
 #endif
 
     // initialize Qt
-    Q_INIT_RESOURCE(translations);
+    // NUTMOD INTEGRATION POINT: initialize the bundled Simplified Chinese translation.
+    Q_INIT_RESOURCE(nutmod_translations);
     Application app(argc, argv);
     switch (app.status()) {
         case Application::StartingUp:

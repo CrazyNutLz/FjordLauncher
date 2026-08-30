@@ -81,7 +81,11 @@ class PrismExternalUpdater : public ExternalUpdater {
     void disconnectTimer();
     void connectTimer();
 
-    void offerUpdate(const QString& versionName, const QString& versionTag, const QString& releaseNotes, bool triggeredByUser) const;
+    void offerUpdate(const QString& title,
+                     const QString& versionTag,
+                     const QString& releaseNotes,
+                     bool mandatory,
+                     bool triggeredByUser) const;
     void performUpdate(const QString& versionTag) const;
 
    public slots:

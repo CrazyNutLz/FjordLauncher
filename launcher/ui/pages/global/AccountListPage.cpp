@@ -50,15 +50,16 @@
 #include "ui/dialogs/MSALoginDialog.h"
 
 #include "Application.h"
+#include "NutMod/NutModBootstrap.h"
+#include "NutMod/NutModUi.h"
 
 AccountListPage::AccountListPage(QWidget* parent) : QMainWindow(parent), ui(new Ui::AccountListPage)
 {
     ui->setupUi(this);
-    ui->actionAddMicrosoft->setVisible(false);
-    ui->actionAddOffline->setVisible(false);
-    ui->toolBar->removeAction(ui->actionAddMicrosoft);
-    ui->toolBar->removeAction(ui->actionAddOffline);
-    ui->listView->setEmptyString(tr("欢迎！\n请选择“添加雕版账号”来登录。"));
+    // NUTMOD INTEGRATION POINT: expose only the server-specific account flow.
+    NutMod::customizeAccountPage(ui->actionAddMicrosoft, ui->actionAddOffline, ui->actionAddAuthlibInjector, ui->toolBar, ui->listView,
+                                 AccountList::VListColumns::AuthServerColumn);
+    ui->listView->setEmptyString(NutMod::accountListEmptyText());
     ui->listView->setEmptyMode(VersionListView::String);
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -70,7 +71,6 @@ AccountListPage::AccountListPage(QWidget* parent) : QMainWindow(parent), ui(new 
     ui->listView->header()->setSectionResizeMode(AccountList::VListColumns::TypeColumn, QHeaderView::ResizeToContents);
     ui->listView->header()->setSectionResizeMode(AccountList::VListColumns::StatusColumn, QHeaderView::ResizeToContents);
     ui->listView->header()->setSectionResizeMode(AccountList::VListColumns::AuthServerColumn, QHeaderView::ResizeToContents);
-    ui->listView->setColumnHidden(AccountList::VListColumns::AuthServerColumn, true);
     ui->listView->setSelectionMode(QAbstractItemView::SingleSelection);
 
     // Expand the account column
@@ -135,10 +135,17 @@ void AccountListPage::listChanged()
 
 void AccountListPage::on_actionAddAuthlibInjector_triggered()
 {
+    if (NutMod::requireOfficialAccountForThirdPartyAccounts() && !m_accounts->anyAccountIsValid()) {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("You must add a Microsoft account that owns Minecraft before you can add an account on a custom "
+                                "authentication server."
+                                "<br><br>"
+                                "If you have lost your account you can contact Microsoft for support."));
+        return;
+    }
+
     MinecraftAccountPtr account = AuthlibInjectorLoginDialog::newAccount(
-        this, tr("请输入您的雕版账号和密码。"
-                 "<br><br>"
-                 "如果您是第一次加入服务器，请先<a href=\"https://login.mc-user.com:233/a000d3f85bc311ea908800163e095b49/register\">点击这里注册账号</a>。"));
+        this, NutMod::accountLoginMessage());
 
     if (account) {
         m_accounts->addAccount(account);
@@ -161,6 +168,14 @@ void AccountListPage::on_actionAddMicrosoft_triggered()
 
 void AccountListPage::on_actionAddOffline_triggered()
 {
+    if (NutMod::requireOfficialAccountForThirdPartyAccounts() && !m_accounts->anyAccountIsValid()) {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("You must add a Microsoft account that owns Minecraft before you can add an offline account."
+                                "<br><br>"
+                                "If you have lost your account you can contact Microsoft for support."));
+        return;
+    }
+
     ChooseOfflineNameDialog dialog(tr("Please enter your desired username to add your offline account."), this);
     if (dialog.exec() != QDialog::Accepted) {
         return;

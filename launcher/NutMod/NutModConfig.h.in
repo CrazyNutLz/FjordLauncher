@@ -1,0 +1,20 @@
+#pragma once
+
+#include <QString>
+
+namespace NutMod::Config {
+inline const QString ApiBaseUrl = QStringLiteral("@NUTMOD_API_BASE_URL@");
+inline const QString LauncherUpdateManifestUrl = QStringLiteral("@NUTMOD_LAUNCHER_UPDATE_MANIFEST_URL@");
+inline const QString ClientUpdateManifestUrl = QStringLiteral("@NUTMOD_CLIENT_UPDATE_MANIFEST_URL@");
+inline const QString NoticeManifestUrl = QStringLiteral("@NUTMOD_NOTICE_MANIFEST_URL@");
+
+inline const QString AuthServerUrl = QStringLiteral("@NUTMOD_AUTH_SERVER_URL@");
+inline const QString AccountRegisterUrl = QStringLiteral("@NUTMOD_ACCOUNT_REGISTER_URL@");
+inline const QString WebsiteUrl = QStringLiteral("@NUTMOD_WEBSITE_URL@");
+inline const QString DonationListUrl = QStringLiteral("@NUTMOD_DONATION_LIST_URL@");
+
+inline const QString DefaultLanguage = QStringLiteral("@NUTMOD_DEFAULT_LANGUAGE@");
+inline const QString DefaultApplicationTheme = QStringLiteral("@NUTMOD_DEFAULT_APPLICATION_THEME@");
+inline const QString DefaultIconTheme = QStringLiteral("@NUTMOD_DEFAULT_ICON_THEME@");
+inline const QString VersionChannel = QStringLiteral("@NUTMOD_VERSION_CHANNEL@");
+}  // namespace NutMod::Config

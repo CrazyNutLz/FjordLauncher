@@ -42,6 +42,7 @@
 
 #include "Application.h"
 #include "BuildConfig.h"
+#include "NutMod/NutModBootstrap.h"
 
 #include "DataMigrationTask.h"
 #include "java/JavaInstallList.h"
@@ -652,14 +653,8 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
             { BuildConfig.LAUNCHER_CONFIGFILE, "pollymc.cfg", "prismlauncher.cfg", "polymc.cfg", "multimc.cfg" }, this));
 
         // Theming
-        m_settings->registerSetting("IconTheme", QString("breeze_dark"));
-        m_settings->registerSetting("ApplicationTheme", QString("dark"));
-        m_settings->registerSetting("FjordDefaultAppearanceApplied", false);
-        if (!m_settings->get("FjordDefaultAppearanceApplied").toBool()) {
-            m_settings->set("IconTheme", QString("breeze_dark"));
-            m_settings->set("ApplicationTheme", QString("dark"));
-            m_settings->set("FjordDefaultAppearanceApplied", true);
-        }
+        m_settings->registerSetting("IconTheme", QString());
+        m_settings->registerSetting("ApplicationTheme", QString());
         m_settings->registerSetting("BackgroundCat", QString("spaceship-phoebe"));
 
         // Remembered state
@@ -727,13 +722,11 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("JsonEditor", QString());
 
         // Language
-        m_settings->registerSetting("Language", QString("zh"));
-        m_settings->registerSetting("FjordDefaultLanguageApplied", false);
-        if (!m_settings->get("FjordDefaultLanguageApplied").toBool()) {
-            m_settings->set("Language", QString("zh"));
-            m_settings->set("FjordDefaultLanguageApplied", true);
-        }
+        m_settings->registerSetting("Language", QString());
         m_settings->registerSetting("UseSystemLocale", false);
+
+        // NUTMOD INTEGRATION POINT: apply server launcher language and appearance defaults.
+        NutMod::applyDefaultSettings(m_settings.get());
 
         // Console
         m_settings->registerSetting("ShowConsole", false);
@@ -1255,7 +1248,7 @@ bool Application::createSetupWizard()
     bool pasteInterventionRequired = settings()->get("PastebinURL") != "";
     bool validWidgets = m_themeManager->isValidApplicationTheme(settings()->get("ApplicationTheme").toString());
     bool validIcons = m_themeManager->isValidIconTheme(settings()->get("IconTheme").toString());
-    bool login = false;
+    bool login = NutMod::showMicrosoftLoginWizard() && !m_accounts->anyAccountIsValid() && capabilities() & Application::SupportsMSA;
     bool themeInterventionRequired = !validWidgets || !validIcons;
     bool wizardRequired = javaRequired || languageRequired || pasteInterventionRequired || themeInterventionRequired || askjava || login;
     if (wizardRequired) {
@@ -1397,7 +1390,7 @@ void Application::performMainStartupAction()
         }
     }
     {
-        bool shouldFetch = false;
+        bool shouldFetch = NutMod::fetchCurseForgeKeyOnStartup() && m_settings->get("FlameKeyShouldBeFetchedOnStartup").toBool();
         if (shouldFetch && !(capabilities() & Capability::SupportsFlame)) {
             QMessageBox msgBox{ m_mainWindow };
             msgBox.setWindowTitle(tr("Fetch CurseForge Core API key?"));
@@ -2002,6 +1995,10 @@ bool Application::handleDataMigration(const QString& currentData,
     }
 
     QMessageBox::StandardButton askMoveDialogue = QMessageBox::No;
+    if (NutMod::allowLegacyDataMigration()) {
+        askMoveDialogue =
+            QMessageBox::question(nullptr, BuildConfig.LAUNCHER_DISPLAYNAME, message, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    }
 
     auto setDoNotMigrate = [&nomigratePath] {
         QFile file(nomigratePath);

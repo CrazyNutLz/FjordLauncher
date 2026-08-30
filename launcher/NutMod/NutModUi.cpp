@@ -7,17 +7,17 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QToolBar>
 #include <QTreeView>
 #include <QVBoxLayout>
 
 #include "NutMod/NutModConfig.h"
+#include "ui/widgets/WideBar.h"
 
 namespace NutMod {
 void customizeAccountPage(QAction* microsoftAction,
                           QAction* offlineAction,
                           QAction* authlibAction,
-                          QToolBar* toolbar,
+                          WideBar* toolbar,
                           QTreeView* accountView,
                           int authServerColumn)
 {

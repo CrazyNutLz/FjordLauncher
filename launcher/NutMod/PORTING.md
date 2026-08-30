@@ -63,7 +63,7 @@ Q_INIT_RESOURCE(nutmod_translations);
 
 ## 5. 账号与界面
 
-- `AccountListPage.cpp` 调用 `NutMod::customizeAccountPage()`，并从 `NutModBootstrap` 获取空页面文案、登录文案和正版账号限制策略。
+- `AccountListPage.cpp` 在 `listView->setModel()` 和表头配置完成后调用 `NutMod::customizeAccountPage()`，并从 `NutModBootstrap` 获取空页面文案、登录文案和正版账号限制策略。必须把 `WideBar*` 原样传入，不能转换成 `QToolBar*`。
 - `AuthlibInjectorLoginDialog.cpp` 调用 `NutMod::customizeAuthlibLoginDialog()`，验证链使用 `NutMod::authServerUrl()`。
 - `AccountList.cpp` 用 `NutMod::accountTypeDisplayName()` 显示“雕版账号”。
 - `AboutDialog.cpp` 在 `setupUi()` 后调用 `NutMod::decorateAboutPage()`。

@@ -5,16 +5,16 @@ class QDialog;
 class QDialogButtonBox;
 class QLabel;
 class QLineEdit;
-class QToolBar;
 class QTreeView;
 class QVBoxLayout;
 class QWidget;
+class WideBar;
 
 namespace NutMod {
 void customizeAccountPage(QAction* microsoftAction,
                           QAction* offlineAction,
                           QAction* authlibAction,
-                          QToolBar* toolbar,
+                          WideBar* toolbar,
                           QTreeView* accountView,
                           int authServerColumn);
 

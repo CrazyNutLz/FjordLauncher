@@ -56,9 +56,6 @@
 AccountListPage::AccountListPage(QWidget* parent) : QMainWindow(parent), ui(new Ui::AccountListPage)
 {
     ui->setupUi(this);
-    // NUTMOD INTEGRATION POINT: expose only the server-specific account flow.
-    NutMod::customizeAccountPage(ui->actionAddMicrosoft, ui->actionAddOffline, ui->actionAddAuthlibInjector, ui->toolBar, ui->listView,
-                                 AccountList::VListColumns::AuthServerColumn);
     ui->listView->setEmptyString(NutMod::accountListEmptyText());
     ui->listView->setEmptyMode(VersionListView::String);
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -72,6 +69,10 @@ AccountListPage::AccountListPage(QWidget* parent) : QMainWindow(parent), ui(new 
     ui->listView->header()->setSectionResizeMode(AccountList::VListColumns::StatusColumn, QHeaderView::ResizeToContents);
     ui->listView->header()->setSectionResizeMode(AccountList::VListColumns::AuthServerColumn, QHeaderView::ResizeToContents);
     ui->listView->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    // NUTMOD INTEGRATION POINT: customize only after the model and WideBar entries exist.
+    NutMod::customizeAccountPage(ui->actionAddMicrosoft, ui->actionAddOffline, ui->actionAddAuthlibInjector, ui->toolBar, ui->listView,
+                                 AccountList::VListColumns::AuthServerColumn);
 
     // Expand the account column
 

@@ -27,10 +27,12 @@ compile_commands.json
 # Build dirs
 build
 /build-*
+!/build-update-bundle.ps1
 
 # Install dirs
 install
 /install-*
+/dist
 
 # Ctags File
 tags

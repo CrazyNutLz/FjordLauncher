@@ -8,3 +8,4 @@ cmake --install build --config Release --component portable
 
 
 移除原版的自动更新，改为自己的自动更新
+

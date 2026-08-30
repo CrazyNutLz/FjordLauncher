@@ -104,6 +104,7 @@ Config::Config()
     } else {
         VERSION_CHANNEL = "unknown";
     }
+    VERSION_CHANNEL = "DaDiaoVersion";
 
     NEWS_RSS_URL = "@Launcher_NEWS_RSS_URL@";
     NEWS_OPEN_URL = "@Launcher_NEWS_OPEN_URL@";

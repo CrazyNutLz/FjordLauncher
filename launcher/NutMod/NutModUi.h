@@ -5,6 +5,7 @@ class QDialog;
 class QDialogButtonBox;
 class QLabel;
 class QLineEdit;
+class QPushButton;
 class QTreeView;
 class QVBoxLayout;
 class QWidget;
@@ -26,4 +27,6 @@ void customizeAuthlibLoginDialog(QDialog* dialog,
                                  QDialogButtonBox* buttons);
 
 void decorateAboutPage(QVBoxLayout* layout, QWidget* parent);
+
+void customizeLauncherUpdateDialog(QDialog* dialog, QPushButton* skipButton, QPushButton* delayButton, bool mandatory);
 }  // namespace NutMod

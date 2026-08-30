@@ -79,7 +79,8 @@ Q_INIT_RESOURCE(nutmod_translations);
 - 下载后进行 SHA-256 校验。
 - 解压前清理临时目录，并要求 ZIP 根目录包含更新器与 `manifest.txt`。
 - `PrismExternalUpdater` 在子进程协议中读取 `Mandatory`，将标题、版本和强制状态传给更新窗口。
-- `UpdateAvailableDialog` 支持服务器标题和强制更新状态。
+- `PrismExternalUpdater` 调用 `NutMod::alwaysCheckLauncherUpdatesOnStartup()`，确保每次启动都检查，并通过 `NutMod::allowSkippingLauncherUpdates()` 禁止旧的跳过记录生效。
+- `UpdateAvailableDialog` 调用 `NutMod::customizeLauncherUpdateDialog()`：始终隐藏“跳过该版本”；强制更新时再隐藏“稍后提醒”和标题栏关闭按钮，同时保留 `reject()` 拦截。
 
 ## 7. 接入点识别
 

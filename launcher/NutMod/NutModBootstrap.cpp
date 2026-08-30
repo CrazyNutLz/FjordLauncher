@@ -45,6 +45,16 @@ bool confirmThirdPartyAuthenticationServer()
     return false;
 }
 
+bool alwaysCheckLauncherUpdatesOnStartup()
+{
+    return true;
+}
+
+bool allowSkippingLauncherUpdates()
+{
+    return false;
+}
+
 bool useBundledChineseTranslation()
 {
     return true;

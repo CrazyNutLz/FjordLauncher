@@ -35,6 +35,7 @@
 #include "StringUtils.h"
 
 #include "BuildConfig.h"
+#include "NutMod/NutModBootstrap.h"
 
 #include "ui/dialogs/UpdateAvailableDialog.h"
 
@@ -72,9 +73,13 @@ PrismExternalUpdater::PrismExternalUpdater(QWidget* parent, const QString& appDi
     }
     priv->parent = parent;
     connectTimer();
-    resetAutoCheckTimer();
-    if (priv->updateInterval == 0) {  // "On Launch"
-        checkForUpdates(false);
+    if (NutMod::alwaysCheckLauncherUpdatesOnStartup()) {
+        QTimer::singleShot(0, this, [this]() { checkForUpdates(false); });
+    } else {
+        resetAutoCheckTimer();
+        if (priv->updateInterval == 0) {  // "On Launch"
+            checkForUpdates(false);
+        }
     }
 }
 
@@ -324,7 +329,8 @@ void PrismExternalUpdater::offerUpdate(const QString& title,
                                        const bool triggeredByUser) const
 {
     priv->settings->beginGroup("skip");
-    auto shouldSkip = !mandatory && !triggeredByUser && priv->settings->value(versionTag, false).toBool();
+    auto shouldSkip = NutMod::allowSkippingLauncherUpdates() && !mandatory && !triggeredByUser
+                      && priv->settings->value(versionTag, false).toBool();
     priv->settings->endGroup();
 
     if (shouldSkip) {

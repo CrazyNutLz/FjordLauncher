@@ -71,4 +71,13 @@ void decorateAboutPage(QVBoxLayout* layout, QWidget* parent)
     layout->insertWidget(0, separator);
     layout->insertWidget(0, label);
 }
+
+void customizeLauncherUpdateDialog(QDialog* dialog, QPushButton* skipButton, QPushButton* delayButton, bool mandatory)
+{
+    skipButton->hide();
+    if (mandatory) {
+        delayButton->hide();
+        dialog->setWindowFlag(Qt::WindowCloseButtonHint, false);
+    }
+}
 }  // namespace NutMod

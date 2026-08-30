@@ -24,6 +24,7 @@
 #include <QPushButton>
 #include "BuildConfig.h"
 #include "Markdown.h"
+#include "NutMod/NutModUi.h"
 #include "StringUtils.h"
 #include "ui_UpdateAvailableDialog.h"
 
@@ -48,11 +49,8 @@ UpdateAvailableDialog::UpdateAvailableDialog(const QString& currentVersion,
     ui->releaseNotes->setHtml(StringUtils::htmlListPatch(releaseNotesHtml));
     ui->releaseNotes->setOpenExternalLinks(true);
 
-    // NUTMOD INTEGRATION POINT: mandatory releases cannot be skipped or postponed.
-    if (m_mandatory) {
-        ui->skipButton->hide();
-        ui->delayButton->hide();
-    }
+    // NUTMOD INTEGRATION POINT: skipping is disabled; mandatory releases also cannot be postponed or closed.
+    NutMod::customizeLauncherUpdateDialog(this, ui->skipButton, ui->delayButton, m_mandatory);
 
     connect(ui->skipButton, &QPushButton::clicked, this, [this]() {
         setResult(ResultCode::Skip);

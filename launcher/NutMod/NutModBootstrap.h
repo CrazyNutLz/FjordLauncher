@@ -13,6 +13,9 @@ bool allowLegacyDataMigration();
 bool requireOfficialAccountForThirdPartyAccounts();
 bool confirmThirdPartyAuthenticationServer();
 
+bool alwaysCheckLauncherUpdatesOnStartup();
+bool allowSkippingLauncherUpdates();
+
 bool useBundledChineseTranslation();
 bool allowRemoteTranslationUpdates();
 QString bundledTranslationPath(const QString& languageCode);

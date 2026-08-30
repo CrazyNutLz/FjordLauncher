@@ -102,6 +102,8 @@ void PrismExternalUpdater::checkForUpdates()
 
 bool PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
 {
+    emit updateAvailabilityChanged(false);
+
     QProgressDialog progress(tr("Checking for updates..."), "", 0, 0, priv->parent);
     progress.setMinimumDuration(0); // Appear immediately without waiting
     progress.setCancelButton(nullptr);
@@ -221,6 +223,7 @@ bool PrismExternalUpdater::checkForUpdates(bool triggeredByUser) const
                 qDebug() << "Update available:" << title << versionTag << releaseTimestamp << "mandatory:" << mandatory;
                 qDebug() << "Update release notes:" << releaseNotes;
 
+                emit updateAvailabilityChanged(true);
                 continueStartup = offerUpdate(title, versionTag, releaseNotes, mandatory, triggeredByUser);
             }
             break;

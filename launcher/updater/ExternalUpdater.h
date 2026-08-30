@@ -74,6 +74,9 @@ class ExternalUpdater : public QObject {
     // NUTMOD INTEGRATION POINT: custom startup services wait for the automatic launcher update check.
     void startupCheckFinished(bool continueStartup);
 
+    // NUTMOD INTEGRATION POINT: show the toolbar update action only when an update exists.
+    void updateAvailabilityChanged(bool available) const;
+
     /*!
      * Emits whenever the user's ability to check for updates changes.
      *

@@ -1430,6 +1430,9 @@ void Application::performMainStartupAction()
 #endif
 #else
         m_updater.reset(new PrismExternalUpdater(m_mainWindow, m_rootPath, m_dataPath));
+        // NUTMOD INTEGRATION POINT: keep the toolbar update action in sync with the startup check result.
+        connect(m_updater.get(), &ExternalUpdater::updateAvailabilityChanged, m_mainWindow,
+                &MainWindow::launcherUpdateAvailabilityChanged);
         // NUTMOD INTEGRATION POINT: do not overlap server notices with the launcher update dialog.
         connect(m_updater.get(), &ExternalUpdater::startupCheckFinished, this, [this](bool continueStartup) {
             if (continueStartup && m_mainWindow) {

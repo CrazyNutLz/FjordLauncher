@@ -78,6 +78,7 @@ class MainWindow : public QMainWindow {
     void checkInstancePathForProblems();
 
     void updatesAllowedChanged(bool allowed);
+    void launcherUpdateAvailabilityChanged(bool available);
 
     void processURLs(QList<QUrl> urls);
    signals:

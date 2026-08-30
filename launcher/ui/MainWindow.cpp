@@ -220,7 +220,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         ui->actionDISCORD->setVisible(!BuildConfig.DISCORD_URL.isEmpty());
         ui->actionREDDIT->setVisible(!BuildConfig.SUBREDDIT_URL.isEmpty());
 
-        ui->actionCheckUpdate->setVisible(APPLICATION->updaterEnabled());
+        // NUTMOD INTEGRATION POINT: hidden until the startup check finds an update.
+        ui->actionCheckUpdate->setVisible(false);
 
 #ifndef Q_OS_MAC
         ui->actionAddToPATH->setVisible(false);
@@ -695,6 +696,12 @@ void MainWindow::updatesAllowedChanged(bool allowed)
         return;
     }
     ui->actionCheckUpdate->setEnabled(allowed);
+}
+
+void MainWindow::launcherUpdateAvailabilityChanged(bool available)
+{
+    // NUTMOD INTEGRATION POINT: expose the update action only for an available launcher update.
+    ui->actionCheckUpdate->setVisible(APPLICATION->updaterEnabled() && available);
 }
 
 /*

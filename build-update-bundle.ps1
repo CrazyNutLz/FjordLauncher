@@ -3,7 +3,7 @@ param(
     # Quick: only the launcher and updater executables.
     # Full:  complete launcher runtime, including Qt, plugins and JAR files.
     [ValidateSet("Quick", "Full")]
-    [string] $PackageMode = "Quick"
+    [string] $PackageMode = "Full"
 )
 
 $ErrorActionPreference = "Stop"

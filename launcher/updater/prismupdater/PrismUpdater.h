@@ -80,7 +80,7 @@ class PrismUpdaterApp : public QApplication {
     void performUpdate(const GitHubRelease& release);
     void performInstall(QFileInfo file);
     void unpackAndInstall(QFileInfo file);
-    void backupAppDir();
+    void backupAppDir(const QDir& updateRoot);
     std::optional<QDir> unpackArchive(QFileInfo file);
 
     QFileInfo downloadAsset(const GitHubReleaseAsset& asset);

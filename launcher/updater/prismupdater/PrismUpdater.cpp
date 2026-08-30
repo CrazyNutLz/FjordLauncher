@@ -982,7 +982,8 @@ void PrismUpdaterApp::unpackAndInstall(QFileInfo archive)
         }
 
         logUpdate(tr("Backing up install"));
-        backupAppDir();
+        // NUTMOD INTEGRATION POINT: only back up files replaced by this update package.
+        backupAppDir(*loc);
 
         auto marker_file_path = loc.value().absoluteFilePath(".prism_launcher_updater_unpack.marker");
         FS::write(marker_file_path, m_rootPath.toUtf8());
@@ -1011,9 +1012,9 @@ void PrismUpdaterApp::unpackAndInstall(QFileInfo archive)
     return exit(1);  // unpack failure
 }
 
-void PrismUpdaterApp::backupAppDir()
+void PrismUpdaterApp::backupAppDir(const QDir& updateRoot)
 {
-    auto manifest_path = FS::PathCombine(m_rootPath, "manifest.txt");
+    auto manifest_path = updateRoot.absoluteFilePath("manifest.txt");
     QFileInfo manifest(manifest_path);
 
     QStringList file_list;
@@ -1032,26 +1033,14 @@ void PrismUpdaterApp::backupAppDir()
     }
 
     if (file_list.isEmpty()) {
-        // best guess
-        if (BuildConfig.BUILD_ARTIFACT.toLower().contains("linux")) {
-            file_list.append({ "FjordLauncher", "bin", "share", "lib" });
-        } else {  // windows by process of elimination
-            file_list.append({
-                "jars",
-                "fjordlauncher.exe",
-                "fjordlauncher_filelink.exe",
-                "fjordlauncher_updater.exe",
-                "qtlogging.ini",
-                "imageformats",
-                "iconengines",
-                "platforms",
-                "styles",
-                "tls",
-                "qt.conf",
-                "Qt*.dll",
-            });
+        // Fall back to the update package contents, never the existing
+        // installation. This keeps partial updates from removing unrelated
+        // runtime libraries that are not present in the downloaded package.
+        const auto entries = updateRoot.entryInfoList(QDir::NoDotAndDotDot | QDir::Files | QDir::Dirs);
+        for (const auto& entry : entries) {
+            file_list.append(entry.fileName());
         }
-        logUpdate("manifest.txt empty or missing. making best guess at files to back up.");
+        logUpdate("Update manifest empty. Backing up only files present in the update package.");
     }
     logUpdate(tr("Backing up:\n  %1").arg(file_list.join(",\n  ")));
     static const QRegularExpression s_replaceRegex("[" + QRegularExpression::escape("\\/:*?\"<>|") + "]");

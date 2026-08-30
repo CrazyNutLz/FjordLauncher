@@ -78,6 +78,7 @@ Q_INIT_RESOURCE(nutmod_translations);
 - `PrismUpdater` 对非 GitHub 地址读取单个 NutMod JSON，并调用 `NutMod::parseLauncherUpdateManifest()`。
 - 下载后进行 SHA-256 校验。
 - 解压前清理临时目录，并要求 ZIP 根目录包含更新器与 `manifest.txt`。
+- `backupAppDir()` 必须读取新更新包目录中的 `manifest.txt`，不能根据旧安装目录猜测备份范围，否则 Quick 增量包会误删 Qt 运行库和插件。
 - `PrismExternalUpdater` 在子进程协议中读取 `Mandatory`，将标题、版本和强制状态传给更新窗口。
 - `PrismExternalUpdater` 调用 `NutMod::alwaysCheckLauncherUpdatesOnStartup()`，确保每次启动都检查，并通过 `NutMod::allowSkippingLauncherUpdates()` 禁止旧的跳过记录生效。
 - `UpdateAvailableDialog` 调用 `NutMod::customizeLauncherUpdateDialog()`：始终隐藏“跳过该版本”；强制更新时再隐藏“稍后提醒”和标题栏关闭按钮，同时保留 `reject()` 拦截。

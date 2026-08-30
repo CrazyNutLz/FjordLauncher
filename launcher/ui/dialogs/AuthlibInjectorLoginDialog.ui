@@ -39,7 +39,7 @@
    <item>
     <widget class="QLineEdit" name="userTextBox">
      <property name="placeholderText">
-      <string>账号或邮箱</string>
+      <string>通行证账号或邮箱（不是游戏ID）</string>
      </property>
     </widget>
    </item>

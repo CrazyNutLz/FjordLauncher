@@ -7,17 +7,4 @@ cmake --install build --config Release --component portable
 .\build\Debug\fjordlauncher.exe
 
 
-在账户页面，把
-添加Microsoft 账户(A)
-添加离线账户（O）
-
-这两个选项隐藏掉，
-只保留（Add authlib-injector） 这个选项。
-这个选项改名为 添加大雕账号
-
-
-验证链接：
-https://auth.mc-user.com:233/a000d3f85bc311ea908800163e095b49
-
-账号注册需要打开的链接：
-https://login.mc-user.com:233/a000d3f85bc311ea908800163e095b49/register
+移除原版的自动更新，改为自己的自动更新

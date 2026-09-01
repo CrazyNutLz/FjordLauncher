@@ -1,6 +1,6 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
-    [string]$PackageName = "DiaobanLauncher",
+    [string]$PackageName = "大雕GTNH客户端_Java25",
     [string]$OutputDirectory = "",
     [switch]$RemoveServerList
 )
@@ -39,11 +39,14 @@ if (-not (Test-Path -LiteralPath (Join-Path $sourceDirectory "instances") -PathT
 
 [System.IO.Directory]::CreateDirectory($OutputDirectory) | Out-Null
 
-$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$archivePath = Join-Path $OutputDirectory ("{0}-{1}.zip" -f $PackageName, $timestamp)
-$hashPath = "$archivePath.sha256"
+$dateStamp = Get-Date -Format "yyyyMMdd"
+$datedPackageName = "{0}_{1}" -f $PackageName, $dateStamp
+$archivePath = Join-Path $OutputDirectory ("{0}.zip" -f $datedPackageName)
+$legacyHashPath = "$archivePath.sha256"
 $stagingDirectory = Join-Path $OutputDirectory (".fjord-package-{0}" -f [guid]::NewGuid().ToString("N"))
-$packageDirectory = Join-Path $stagingDirectory $PackageName
+$packageDirectory = Join-Path $stagingDirectory $datedPackageName
+$shortcutName = "启动大雕GTNH客户端.lnk"
+$shortcutPath = Join-Path $stagingDirectory $shortcutName
 
 function Remove-StagingDirectory {
     param([Parameter(Mandatory)][string]$Path)
@@ -63,9 +66,10 @@ function Remove-StagingDirectory {
             $emptyDirectory = Join-Path $OutputDirectory (".fjord-empty-{0}" -f [guid]::NewGuid().ToString("N"))
             try {
                 [System.IO.Directory]::CreateDirectory($emptyDirectory) | Out-Null
-                & robocopy.exe $emptyDirectory $resolvedPath /MIR /R:2 /W:1 /XJ /NFL /NDL /NJH /NJS /NP
-                if ($LASTEXITCODE -ge 8) {
-                    throw "Robocopy cleanup failed with exit code $LASTEXITCODE."
+                & robocopy.exe $emptyDirectory $resolvedPath /MIR /R:2 /W:1 /XJ /NFL /NDL /NJH /NJS /NP | Out-Null
+                $cleanupExitCode = $LASTEXITCODE
+                if ($cleanupExitCode -ge 8) {
+                    throw "Robocopy cleanup failed with exit code $cleanupExitCode."
                 }
                 if (Test-Path -LiteralPath $resolvedPath) {
                     [System.IO.Directory]::Delete($resolvedPath, $false)
@@ -204,8 +208,34 @@ try {
         Set-MinecraftLanguage -Path $_.FullName
     }
 
+    # Keep the large client in its own directory while providing an obvious
+    # entry point at the root of the extracted package. Windows shortcuts keep
+    # a relative fallback, so the link continues to work after extraction.
+    $launcherPath = Join-Path $packageDirectory "fjordlauncher.exe"
+    $shell = New-Object -ComObject WScript.Shell
+    try {
+        $shortcut = $shell.CreateShortcut($shortcutPath)
+        try {
+            $shortcut.TargetPath = $launcherPath
+            $shortcut.Description = "启动大雕 GTNH 客户端"
+            $shortcut.Save()
+        }
+        finally {
+            [void][System.Runtime.InteropServices.Marshal]::FinalReleaseComObject($shortcut)
+        }
+    }
+    finally {
+        [void][System.Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)
+    }
+    if (-not (Test-Path -LiteralPath $shortcutPath -PathType Leaf)) {
+        throw "Failed to create the launcher shortcut: $shortcutPath"
+    }
+
     if (Test-Path -LiteralPath $archivePath) {
         Remove-Item -LiteralPath $archivePath -Force
+    }
+    if (Test-Path -LiteralPath $legacyHashPath) {
+        Remove-Item -LiteralPath $legacyHashPath -Force
     }
 
     $sevenZip = Get-Command 7z.exe, 7zz.exe, 7za.exe -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -213,7 +243,7 @@ try {
         Write-Host "Creating ZIP with 7-Zip..." -ForegroundColor Cyan
         Push-Location $stagingDirectory
         try {
-            & $sevenZip.Source a -tzip -mx=7 $archivePath $PackageName
+            & $sevenZip.Source a -tzip -mx=7 $archivePath $datedPackageName $shortcutName
             if ($LASTEXITCODE -ne 0) {
                 throw "7-Zip failed with exit code $LASTEXITCODE."
             }
@@ -224,24 +254,19 @@ try {
     }
     elseif ($null -ne (Get-Command tar.exe -ErrorAction SilentlyContinue)) {
         Write-Host "Creating ZIP with Windows tar..." -ForegroundColor Cyan
-        & tar.exe -a -c -f $archivePath -C $stagingDirectory $PackageName
+        & tar.exe -a -c -f $archivePath -C $stagingDirectory $datedPackageName $shortcutName
         if ($LASTEXITCODE -ne 0) {
             throw "tar.exe failed with exit code $LASTEXITCODE."
         }
     }
     else {
         Write-Host "Creating ZIP with Compress-Archive..." -ForegroundColor Cyan
-        Compress-Archive -LiteralPath $packageDirectory -DestinationPath $archivePath -CompressionLevel Optimal
+        Compress-Archive -LiteralPath @($packageDirectory, $shortcutPath) -DestinationPath $archivePath -CompressionLevel Optimal
     }
-
-    $hash = Get-FileHash -LiteralPath $archivePath -Algorithm SHA256
-    $hashLine = "{0} *{1}" -f $hash.Hash.ToLowerInvariant(), (Split-Path -Leaf $archivePath)
-    [System.IO.File]::WriteAllText($hashPath, $hashLine + [Environment]::NewLine, (New-Object System.Text.UTF8Encoding($false)))
 
     $archiveSizeGiB = [math]::Round((Get-Item -LiteralPath $archivePath).Length / 1GB, 2)
     Write-Host "Package created successfully." -ForegroundColor Green
     Write-Host "ZIP:    $archivePath ($archiveSizeGiB GiB)"
-    Write-Host "SHA256: $hashPath"
     if (-not $RemoveServerList) {
         Write-Host "servers.dat was kept. Use -RemoveServerList if you do not want to distribute it." -ForegroundColor Yellow
     }

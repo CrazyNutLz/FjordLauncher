@@ -1,6 +1,6 @@
 # Central configuration for CrazyNut's custom launcher features.
 # Change the base URL here when the API server is migrated.
-set(NUTMOD_API_BASE_URL "https://flyplayteam.fun/software/fjrod-java25")
+set(NUTMOD_API_BASE_URL "https://nutnode.top/software/fjrod-java25")
 
 set(NUTMOD_LAUNCHER_UPDATE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/launcher.json")
 

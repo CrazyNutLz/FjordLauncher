@@ -8,4 +8,4 @@ cmake --install build --config Release --component portable
 
 
 
-https://flyplayteam.fun/software/fjrod-java25/notice.json
+https://nutnode.top/software/fjrod-java25/notice.json

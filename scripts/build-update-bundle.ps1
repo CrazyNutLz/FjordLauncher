@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$repoRoot = (Resolve-Path $PSScriptRoot).Path
+$repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 $releaseDir = Join-Path $repoRoot "build\Release"
 $distDir = Join-Path $repoRoot "dist"
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -43,7 +43,7 @@ function Remove-DistPath {
 }
 
 Write-Host "=== Loading development environment ==="
-. (Join-Path $repoRoot "dev-env.ps1")
+. (Join-Path $PSScriptRoot "dev-env.ps1")
 
 Write-Host "=== Configuring CMake ==="
 Invoke-ExternalCommand -FilePath "cmake" -ArgumentList @(

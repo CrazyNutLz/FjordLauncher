@@ -27,7 +27,6 @@ compile_commands.json
 # Build dirs
 build
 /build-*
-!/build-update-bundle.ps1
 
 # Install dirs
 install
@@ -46,6 +45,9 @@ tags
 branding/
 secrets/
 run/
+
+# Per-machine overrides loaded by scripts/dev-env.ps1
+/scripts/dev-env.local.ps1
 
 .cache/
 

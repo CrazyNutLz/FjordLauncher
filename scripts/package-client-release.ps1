@@ -1,6 +1,7 @@
 ﻿[CmdletBinding()]
 param(
     [string]$PackageName = "大雕GTNH客户端_Java25",
+    [string]$SourceDirectory = "",
     [string]$OutputDirectory = "",
     [switch]$RemoveServerList
 )
@@ -8,10 +9,14 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$sourceDirectory = [System.IO.Path]::GetFullPath($PSScriptRoot)
+$repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
+if ([string]::IsNullOrWhiteSpace($SourceDirectory)) {
+    $SourceDirectory = Join-Path $repoRoot "install"
+}
+$sourceDirectory = [System.IO.Path]::GetFullPath($SourceDirectory)
 
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
-    $OutputDirectory = Split-Path -Parent $sourceDirectory
+    $OutputDirectory = Join-Path $repoRoot "dist"
 }
 $OutputDirectory = [System.IO.Path]::GetFullPath($OutputDirectory)
 
@@ -28,7 +33,7 @@ if ($outputPrefix.StartsWith($sourcePrefix, [System.StringComparison]::OrdinalIg
 }
 
 if (-not (Test-Path -LiteralPath (Join-Path $sourceDirectory "fjordlauncher.exe") -PathType Leaf)) {
-    throw "fjordlauncher.exe was not found. Put this script in the install directory and run it there."
+    throw "fjordlauncher.exe was not found in SourceDirectory: $sourceDirectory"
 }
 if (-not (Test-Path -LiteralPath (Join-Path $sourceDirectory "portable.txt") -PathType Leaf)) {
     throw "portable.txt was not found. Refusing to build a non-portable distribution package."
@@ -136,6 +141,7 @@ try {
         "*.log",
         "hs_err_pid*.log",
         "package-release.bat",
+        "package-client-release.bat",
         (Split-Path -Leaf $PSCommandPath)
     )
     if ($RemoveServerList) {

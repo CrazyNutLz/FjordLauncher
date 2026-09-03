@@ -330,22 +330,29 @@ Requirements:
 
 ## Development environment
 
+All repository helper scripts are stored in `scripts/`. On a new computer, read
+`docs/Windows开发与打包环境.md` and `scripts/README.md` before configuring or
+building the project. Do not add machine-specific absolute paths to tracked
+scripts; use the ignored `scripts/dev-env.local.ps1` file when auto-detection is
+insufficient.
+
 ### Build command
 
 ```powershell
+. .\scripts\dev-env.ps1
 cmake --build --preset windows_msvc --config Debug
 ```
 
 ### Qt
 
 ```text
-F:\QT\6.11.2\msvc2022_64
+Qt 6.11.2, MSVC 2022 x64 (msvc2022_64)
 ```
 
 ### vcpkg
 
 ```text
-D:\PCL\vcpkg
+Set VCPKG_ROOT or let scripts/dev-env.ps1 locate it.
 ```
 
 ### Platform

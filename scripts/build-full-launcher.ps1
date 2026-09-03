@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$repoRoot = (Resolve-Path $PSScriptRoot).Path
+$repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 $buildDir = Join-Path $repoRoot "build"
 $distDir = Join-Path $repoRoot "dist"
 $packageDir = Join-Path $distDir "FjordLauncher"
@@ -41,7 +41,7 @@ function Assert-PackageFile {
 }
 
 Write-Host "=== Loading development environment ==="
-. (Join-Path $repoRoot "dev-env.ps1")
+. (Join-Path $PSScriptRoot "dev-env.ps1")
 
 Write-Host "=== Configuring CMake ==="
 Invoke-ExternalCommand -FilePath "cmake" -ArgumentList @(
@@ -60,7 +60,7 @@ Invoke-ExternalCommand -FilePath "cmake" -ArgumentList @(
 Remove-DistDirectory -Path $packageDir
 
 # Remove artifacts created by the older version of this script. Keep the
-# launcher-update folder and ZIP produced by build-update-bundle.ps1.
+# launcher-update folder and ZIP produced by scripts/build-update-bundle.ps1.
 Get-ChildItem -LiteralPath $distDir -Filter "FjordLauncher-Full-*.zip" -File -ErrorAction SilentlyContinue | ForEach-Object {
     Remove-DistDirectory -Path $_.FullName
 }

@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0package-release.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0package-client-release.ps1" %*
 set "PACKAGE_EXIT_CODE=%ERRORLEVEL%"
 echo.
 if not "%PACKAGE_EXIT_CODE%"=="0" (

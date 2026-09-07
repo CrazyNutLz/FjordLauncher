@@ -78,6 +78,7 @@ BaseInstance::BaseInstance(SettingsObject* globalSettings, std::unique_ptr<Setti
     m_rootDir = rootDir;
 
     m_settings->registerSetting("name", "Unnamed Instance");
+    // NUTMOD INTEGRATION POINT: opt in only the server client, never arbitrary instances.
     m_settings->registerSetting("iconKey", "default");
     m_settings->registerSetting("notes", "");
 

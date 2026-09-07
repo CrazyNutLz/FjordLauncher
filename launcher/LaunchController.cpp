@@ -35,6 +35,7 @@
  */
 
 #include "LaunchController.h"
+#include "NutMod/client_update/ClientUpdateService.h"
 #include <meta/Index.h>
 #include "Application.h"
 #include "launch/steps/PrintServers.h"
@@ -73,6 +74,12 @@ void LaunchController::executeTask()
         return;
     }
 
+    // NUTMOD INTEGRATION POINT: startup updates are completed before Application permits launch.
+    continueAfterClientUpdate();
+}
+
+void LaunchController::continueAfterClientUpdate()
+{
     if (!JavaCommon::checkJVMArgs(m_instance->settings()->get("JvmArgs").toString(), m_parentWidget)) {
         emitFailed(tr("Invalid Java arguments specified. Please fix this first."));
         return;
@@ -621,8 +628,18 @@ void LaunchController::launchInstance()
 
 void LaunchController::readyForLaunch()
 {
+    // NUTMOD INTEGRATION POINT: preserve running-game detection even if the launcher is killed.
+    QString gameRecordError;
+    if (!NutMod::ClientUpdateService::instance().recordGame(this, m_launcher->pid(), gameRecordError)) {
+        disconnect(m_launcher, nullptr, this, nullptr);
+        m_launcher->abort();
+        qWarning().noquote() << gameRecordError;
+        emitFailed(gameRecordError);
+        return;
+    }
     if (!m_profiler) {
         m_launcher->proceed();
+        NutMod::ClientUpdateService::instance().releasePreparation(this);
         return;
     }
 
@@ -646,6 +663,7 @@ void LaunchController::readyForLaunch()
         msg.addButton(tr("&Launch"), QMessageBox::AcceptRole);
         msg.exec();
         m_launcher->proceed();
+        NutMod::ClientUpdateService::instance().releasePreparation(this);
     });
     connect(profilerInstance, &BaseProfiler::abortLaunch, [this](const QString& message) {
         QMessageBox msg;
@@ -684,6 +702,9 @@ void LaunchController::onProgressRequested(Task* task) const
 
 bool LaunchController::abort()
 {
+    // NUTMOD INTEGRATION POINT: cancellation waits for downloads/rollback to finish.
+    if (m_clientUpdate && m_clientUpdate->isRunning())
+        return m_clientUpdate->abort();
     if (!m_launcher) {
         return true;
     }

@@ -1,0 +1,19 @@
+{
+  "silent": false,
+  "force": false,
+  "notice": "服务器更新",
+  "files": [
+    {
+      "path": "instances/GT_New_Horizons_2.8.0_Java_17-25/.minecraft/config/defaultserverlist.cfg",
+      "sha256": "F6299893F70258D246433DD55AE39A434AABC4A523667089AF38C0DB1F270C85",
+      "url": "http://47.102.195.80:5244/d/Share1/fjord/defaultserverlist.cfg?sign=0s5Ei2Zzv9r3VW6J7OGuIz_-2q47i79r4LIGBF3__tQ=:0",
+      "policy": "managed",
+      "notice": "更新服务器列表",
+      "silent": false,
+      "force": true
+      
+    }
+  ],
+  "remove": [],
+  "archives": []
+}

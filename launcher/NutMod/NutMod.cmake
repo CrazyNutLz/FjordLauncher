@@ -8,6 +8,14 @@ configure_file(
 )
 
 set(NUTMOD_LOGIC_SOURCES
+    NutMod/client_update/ClientUpdateManifest.h
+    NutMod/client_update/ClientUpdateManifest.cpp
+    NutMod/client_update/ClientUpdateEngine.h
+    NutMod/client_update/ClientUpdateEngine.cpp
+    NutMod/client_update/ClientUpdateTask.h
+    NutMod/client_update/ClientUpdateTask.cpp
+    NutMod/client_update/ClientUpdateService.h
+    NutMod/client_update/ClientUpdateService.cpp
     NutMod/bootstrap/NutModBootstrap.h
     NutMod/bootstrap/NutModBootstrap.cpp
     NutMod/notices/NoticeDialog.h

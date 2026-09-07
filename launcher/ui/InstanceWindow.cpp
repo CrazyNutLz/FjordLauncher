@@ -35,6 +35,7 @@
  */
 
 #include "InstanceWindow.h"
+#include "NutMod/client_update/ClientUpdateService.h"
 #include "Application.h"
 
 #include <QCloseEvent>
@@ -139,6 +140,12 @@ InstanceWindow::InstanceWindow(BaseInstance* instance, QWidget* parent) : QMainW
         static_cast<ManagedPackPage*>(m_container->getPage("managed_pack"))->setInstanceWindow(this);
     }
 
+    // NUTMOD INTEGRATION POINT: open editor windows cannot mutate files during updates.
+    connect(&NutMod::ClientUpdateService::instance(), &NutMod::ClientUpdateService::changed, this, [this] {
+        m_container->setEnabled(!NutMod::ClientUpdateService::instance().busy());
+        updateButtons();
+    });
+    m_container->setEnabled(!NutMod::ClientUpdateService::instance().busy());
     show();
 }
 
@@ -152,7 +159,7 @@ void InstanceWindow::on_instanceStatusChanged(BaseInstance::Status, BaseInstance
 
 void InstanceWindow::updateButtons()
 {
-    m_launchButton->setEnabled(m_instance->canLaunch());
+    m_launchButton->setEnabled(m_instance->canLaunch() && !NutMod::ClientUpdateService::instance().busy());
     m_killButton->setEnabled(m_instance->isRunning());
 
     QMenu* launchMenu = m_launchButton->menu();
@@ -180,6 +187,10 @@ void InstanceWindow::runningStateChanged(bool running)
 
 void InstanceWindow::closeEvent(QCloseEvent* event)
 {
+    if (NutMod::ClientUpdateService::instance().busy()) {
+        event->ignore();
+        return;
+    }
     bool proceed = true;
     if (!m_doNotSave) {
         proceed &= m_container->prepareToClose();
@@ -197,6 +208,8 @@ void InstanceWindow::closeEvent(QCloseEvent* event)
 
 bool InstanceWindow::saveAll()
 {
+    if (NutMod::ClientUpdateService::instance().busy())
+        return false;
     return m_container->saveAll();
 }
 

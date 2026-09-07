@@ -40,6 +40,7 @@
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
 #include "minecraft/auth/MinecraftAccount.h"
+#include "NutMod/client_update/ClientUpdateTask.h"
 #include "minecraft/launch/MinecraftTarget.h"
 
 class InstanceWindow;
@@ -76,6 +77,7 @@ class LaunchController : public Task {
 
    private:
     void login();
+    void continueAfterClientUpdate();
     void launchInstance();
     void decideAccount();
     LaunchDecision decideLaunchMode();
@@ -101,5 +103,6 @@ class LaunchController : public Task {
     MinecraftAccountPtr m_accountToUse = nullptr;
     AuthSessionPtr m_session = nullptr;
     LaunchTask* m_launcher = nullptr;
+    shared_qobject_ptr<NutMod::ClientUpdateTask> m_clientUpdate;
     MinecraftTarget::Ptr m_targetToJoin = nullptr;
 };

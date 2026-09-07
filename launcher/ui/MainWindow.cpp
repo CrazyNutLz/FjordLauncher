@@ -42,6 +42,7 @@
 #include "BuildConfig.h"
 #include "FileSystem.h"
 #include "NutMod/ui/NutModUi.h"
+#include "NutMod/client_update/ClientUpdateService.h"
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
@@ -198,6 +199,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         helpMenuButton = dynamic_cast<QToolButton*>(ui->mainToolBar->widgetForAction(ui->actionHelpButton));
         // NUTMOD INTEGRATION POINT: allow users to reopen the current server notices.
         NutMod::addServerNoticeAction(ui->helpMenu, ui->actionAbout, this, APPLICATION->settings());
+        // NUTMOD INTEGRATION POINT: bind and repair only the selected server instance.
+        NutMod::ClientUpdateService::instance().addActions(ui->helpMenu, ui->actionAbout, this, [this] { return m_selectedInstance; });
         ui->actionHelpButton->setMenu(new QMenu(this));
         ui->actionHelpButton->menu()->addActions(ui->helpMenu->actions());
         ui->actionHelpButton->menu()->removeAction(ui->actionCheckUpdate);
@@ -265,7 +268,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
         // FIXME: This is kinda weird. and bad. We need some kind of managed shutdown.
         auto q = new QShortcut(QKeySequence::Quit, this);
-        connect(q, &QShortcut::activated, APPLICATION, &Application::quit);
+        // NUTMOD INTEGRATION POINT: the quit shortcut must obey the update guard too.
+        connect(q, &QShortcut::activated, this, [this] {
+            if (NutMod::ClientUpdateService::instance().busy()) {
+                QMessageBox::information(this, QStringLiteral("客户端更新"), QStringLiteral("客户端正在更新，请在更新完成后再退出启动器。"));
+                return;
+            }
+            APPLICATION->quit();
+        });
     }
 
     // Konami Code
@@ -364,8 +374,30 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     m_statusLeft = new QLabel(tr("No instance selected"), this);
     m_statusCenter = new QLabel(tr("Total playtime: 0s"), this);
-    statusBar()->addPermanentWidget(m_statusLeft, 1);
-    statusBar()->addPermanentWidget(m_statusCenter, 0);
+    // NUTMOD INTEGRATION POINT: three distinct, padded sections in the bottom row.
+    auto* statusRow = new QWidget(this);
+    auto* statusLayout = new QHBoxLayout(statusRow);
+    statusLayout->setContentsMargins(8, 3, 8, 3);
+    statusLayout->setSpacing(12);
+    statusLayout->addWidget(m_statusLeft, 1);
+    m_statusCenter->setStyleSheet(QStringLiteral("QLabel { border-left: 1px solid palette(mid); padding-left: 12px; }"));
+    statusLayout->addWidget(m_statusCenter);
+    // NUTMOD INTEGRATION POINT: persistent update status, including silent updates.
+    auto* clientUpdateLabel = new QLabel(this);
+    clientUpdateLabel->setTextFormat(Qt::PlainText);
+    clientUpdateLabel->setMinimumWidth(0);
+    clientUpdateLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    clientUpdateLabel->setStyleSheet(QStringLiteral("QLabel { border-left: 1px solid palette(mid); padding-left: 12px; }"));
+    clientUpdateLabel->setText(NutMod::ClientUpdateService::instance().currentStatus().simplified().left(70));
+    statusLayout->addWidget(clientUpdateLabel, 2);
+    statusBar()->addPermanentWidget(statusRow, 1);
+    connect(&NutMod::ClientUpdateService::instance(), &NutMod::ClientUpdateService::changed, this, [this, clientUpdateLabel] {
+        auto& service = NutMod::ClientUpdateService::instance();
+        clientUpdateLabel->setVisible(!service.currentStatus().isEmpty());
+        clientUpdateLabel->setText(service.currentStatus().simplified().left(70) + (service.busy() ? QStringLiteral(" · 请完成后再启动游戏") : QString()));
+        clientUpdateLabel->setToolTip(service.currentStatus());
+        updateLaunchButton();
+    });
 
     // Add "manage accounts" button, right align
     QWidget* spacer = new QWidget();
@@ -572,6 +604,10 @@ void MainWindow::updateMainToolBar()
 
 void MainWindow::updateLaunchButton()
 {
+    // NUTMOD INTEGRATION POINT: the backend gate also covers double-click/hotkeys.
+    const bool updating = NutMod::ClientUpdateService::instance().busy();
+    ui->actionLaunchInstance->setEnabled(!updating && m_selectedInstance && m_selectedInstance->canLaunch());
+    ui->actionLaunchInstance->setText(updating ? QStringLiteral("更新中…") : tr("Launch"));
     QMenu* launchMenu = ui->actionLaunchInstance->menu();
     if (launchMenu)
         launchMenu->clear();
@@ -837,6 +873,8 @@ void MainWindow::instanceFromInstanceTask(InstanceTask* rawTask)
 
 void MainWindow::on_actionCopyInstance_triggered()
 {
+    if (NutMod::ClientUpdateService::instance().busy())
+        return;
     if (!m_selectedInstance)
         return;
 
@@ -1332,6 +1370,8 @@ void MainWindow::checkForUpdates()
 
 void MainWindow::on_actionSettings_triggered()
 {
+    if (NutMod::ClientUpdateService::instance().busy())
+        return;
     APPLICATION->ShowGlobalSettings(this, "global-settings");
 }
 
@@ -1431,6 +1471,10 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionDeleteInstance_triggered()
 {
+    if (NutMod::ClientUpdateService::instance().busy() || NutMod::ClientUpdateService::instance().reserved(m_selectedInstance)) {
+        QMessageBox::information(this, QStringLiteral("客户端更新"), QStringLiteral("请等待更新和启动操作结束后再删除实例。"));
+        return;
+    }
     if (!m_selectedInstance) {
         return;
     }
@@ -1511,6 +1555,8 @@ void MainWindow::on_actionExportInstanceFlamePack_triggered()
 
 void MainWindow::on_actionRenameInstance_triggered()
 {
+    if (NutMod::ClientUpdateService::instance().busy())
+        return;
     if (m_selectedInstance) {
         view->edit(view->currentIndex());
     }
@@ -1526,6 +1572,12 @@ void MainWindow::on_actionViewSelectedInstFolder_triggered()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    // NUTMOD INTEGRATION POINT: do not destroy an active update worker.
+    if (NutMod::ClientUpdateService::instance().busy()) {
+        event->ignore();
+        QMessageBox::information(this, QStringLiteral("客户端更新"), QStringLiteral("客户端正在更新，请在更新完成后再关闭启动器。"));
+        return;
+    }
     // Save the window state and geometry.
     APPLICATION->settings()->set("MainWindowState", QString::fromUtf8(saveState().toBase64()));
     APPLICATION->settings()->set("MainWindowGeometry", QString::fromUtf8(saveGeometry().toBase64()));

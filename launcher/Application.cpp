@@ -43,6 +43,7 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "NutMod/bootstrap/NutModBootstrap.h"
+#include "NutMod/client_update/ClientUpdateService.h"
 
 #include "DataMigrationTask.h"
 #include "java/JavaInstallList.h"
@@ -1350,6 +1351,17 @@ void Application::setupWizardFinished(int status)
 void Application::performMainStartupAction()
 {
     m_status = Application::Initialized;
+    // NUTMOD INTEGRATION POINT: check the data-root manifest once on every launcher startup.
+    if (!m_clientStartupChecked) {
+        m_clientStartupChecked = true;
+        showMainWindow(false);
+        NutMod::ClientUpdateService::instance().automatic(m_mainWindow, [this](bool success) {
+            if (!success)
+                m_instanceIdToLaunch.clear();
+            QMetaObject::invokeMethod(this, &Application::performMainStartupAction, Qt::QueuedConnection);
+        });
+        return;
+    }
     if (!m_instanceIdToLaunch.isEmpty()) {
         auto inst = instances()->getInstanceById(m_instanceIdToLaunch);
         if (inst) {
@@ -1580,6 +1592,20 @@ bool Application::launch(BaseInstance* instance,
                          MinecraftAccountPtr accountToUse,
                          const QString& offlineName)
 {
+    // NUTMOD INTEGRATION POINT: all launch entry points share the update gate.
+    const auto blocked = NutMod::ClientUpdateService::instance().launchBlockReason(instance);
+    if (!blocked.isEmpty()) {
+        qWarning().noquote() << blocked;
+        if (m_mainWindow) {
+            static bool showing = false;
+            if (!showing) {
+                showing = true;
+                QMessageBox::information(m_mainWindow, QStringLiteral("暂时无法启动"), blocked);
+                showing = false;
+            }
+        }
+        return false;
+    }
     if (m_updateRunning) {
         qDebug() << "Cannot launch instances while an update is running. Please try again when updates are completed.";
     } else if (instance->canLaunch()) {
@@ -1603,6 +1629,16 @@ bool Application::launch(BaseInstance* instance,
             controller->setParentWidget(window);
         } else if (m_mainWindow) {
             controller->setParentWidget(m_mainWindow);
+        }
+        // NUTMOD INTEGRATION POINT: reserve before queueing, keep the lease until game exit.
+        QString reserveError;
+        if (!NutMod::ClientUpdateService::instance().reserveLaunch(instance, controller.get(), reserveError)) {
+            controller.reset();
+            locker.unlock();
+            qWarning().noquote() << reserveError;
+            if (m_mainWindow)
+                QMessageBox::information(m_mainWindow, QStringLiteral("暂时无法启动"), reserveError);
+            return false;
         }
         connect(controller.get(), &LaunchController::finished, this, &Application::controllerFinished);
         addRunningInstance();
@@ -1668,7 +1704,7 @@ bool Application::shouldExitNow() const
 
 bool Application::updatesAreAllowed()
 {
-    return m_runningInstances == 0;
+    return m_runningInstances == 0 && !NutMod::ClientUpdateService::instance().busy();
 }
 
 void Application::updateIsRunning(bool running)
@@ -1705,6 +1741,11 @@ void Application::controllerFinished()
 
 void Application::ShowGlobalSettings(class QWidget* parent, QString open_page)
 {
+    // NUTMOD INTEGRATION POINT: settings reload can invalidate active instance objects.
+    if (NutMod::ClientUpdateService::instance().busy()) {
+        QMessageBox::information(parent, QStringLiteral("客户端更新"), QStringLiteral("请在客户端更新完成后再修改设置。"));
+        return;
+    }
     if (!m_globalSettingsProvider) {
         return;
     }

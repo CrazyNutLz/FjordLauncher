@@ -81,7 +81,8 @@ auto Download::makeFile(QUrl url, QString path, Options options) -> Download::Pt
 {
     auto dl = makeShared<Download>();
     dl->m_url = url;
-    dl->setObjectName(QString("FILE:") + url.toString());
+    // NUTMOD INTEGRATION POINT: signed update URLs must not enter Task debug names.
+    dl->setObjectName(QString("FILE:") + (options & Option::RedactUrl ? QStringLiteral("[client update]") : url.toString()));
     dl->m_options = options;
     dl->m_sink.reset(new FileSink(path));
     return dl;

@@ -139,6 +139,8 @@ try {
         "usercache.json",
         "usernamecache.json",
         "*.log",
+        ".nutmod-session.lock",
+        ".nutmod-game.json",
         "hs_err_pid*.log",
         "package-release.bat",
         "package-client-release.bat",
@@ -150,9 +152,14 @@ try {
 
     $excludedDirectories = @(
         (Join-Path $sourceDirectory "logs")
+        (Join-Path $sourceDirectory ".nutmod-update")
     )
 
     Get-ChildItem -LiteralPath (Join-Path $sourceDirectory "instances") -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        $excludedDirectories += Join-Path $_.FullName '.nutmod-update'
+        foreach ($gameFolder in @('.minecraft', 'minecraft')) {
+            $excludedDirectories += Join-Path (Join-Path $_.FullName $gameFolder) '.nutmod-update'
+        }
         $minecraftDirectory = Join-Path $_.FullName ".minecraft"
         if (Test-Path -LiteralPath $minecraftDirectory -PathType Container) {
             foreach ($relativeDirectory in @("logs", "crash-reports", "screenshots", "saves", "backups", "journeymap")) {
@@ -201,13 +208,19 @@ try {
         "ActiveAccount"
     )
 
-    Get-ChildItem -LiteralPath (Join-Path $packageDirectory "instances") -Filter "instance.cfg" -File -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+    $clientConfigs = @(Get-ChildItem -LiteralPath (Join-Path $packageDirectory "instances") -Directory | ForEach-Object {
+        $configPath = Join-Path $_.FullName 'instance.cfg'
+        if (Test-Path -LiteralPath $configPath -PathType Leaf) { Get-Item -LiteralPath $configPath }
+    })
+    $clientConfigs | ForEach-Object {
         Remove-ConfigKeys -Path $_.FullName -Keys @(
+            "NutModClientUpdateEnabled",
             "shortcuts",
             "lastLaunchTime",
             "lastTimePlayed",
             "totalTimePlayed"
         )
+
     }
 
     Get-ChildItem -LiteralPath (Join-Path $packageDirectory "instances") -Filter "options.txt" -File -Recurse -ErrorAction SilentlyContinue | ForEach-Object {

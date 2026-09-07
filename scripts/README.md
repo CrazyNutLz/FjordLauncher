@@ -10,6 +10,7 @@
 | `build-and-run-debug.ps1` | `test.ps1` | 增量编译 Debug 版并启动测试 | `build/Debug/fjordlauncher.exe` |
 | `build-full-launcher.ps1` | `repack.ps1` | 构建可独立运行的完整 Release 启动器运行时 | `dist/FjordLauncher/` |
 | `build-update-bundle.ps1` | 同名 | 构建启动器自动更新包，支持 Quick 和 Full | `dist/fjordlauncher-update-*/` 和 ZIP |
+| `build-client-update-manifest.ps1` | 新增 | 从发布文件及 ZIP 计算客户端更新清单的 SHA-256 | 指定的 JSON 文件 |
 | `package-client-release.ps1` | `package-release.ps1` | 从一个已经可运行的客户端目录清理账号、日志、存档等用户数据并制作分发 ZIP | `dist/大雕GTNH客户端_Java25_yyyyMMdd.zip` |
 | `package-client-release.bat` | `package-release.bat` | 双击运行完整客户端发布脚本；命令行参数会原样传给 PS1 | 同上 |
 
@@ -41,6 +42,8 @@
 ```
 
 `package-client-release.ps1` 默认输出到仓库的 `dist` 目录。可以用 `-OutputDirectory` 指定其他位置。
+
+启动器打开后自动检查客户端更新，不需要实例开关。API 路径相对于启动器数据目录，如 `instances/GT_New_Horizons_2.8.0_Java_17-25/.minecraft/config/defaultserverlist.cfg`。打包清除旧绑定标记，排除根目录和实例的 `.nutmod-update`、锁与进程记录。生成哈希使用 `build-client-update-manifest.ps1 -LauncherDirectory 'D:\MC'`，完整字段见 [客户端更新说明](../launcher/NutMod/client_update/README.md)。
 
 ## Quick 与 Full 更新包
 

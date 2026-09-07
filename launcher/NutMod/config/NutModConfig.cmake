@@ -5,7 +5,7 @@ set(NUTMOD_API_BASE_URL "https://nutnode.top/software/fjrod-java25")
 set(NUTMOD_LAUNCHER_UPDATE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/launcher.json")
 
 # Reserved for the client updater and custom announcements.
-set(NUTMOD_CLIENT_UPDATE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/client.json")
+set(NUTMOD_CLIENT_UPDATE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/ClientUpdateInfo.json")
 set(NUTMOD_NOTICE_MANIFEST_URL "${NUTMOD_API_BASE_URL}/notice.json")
 
 # Server and branding configuration.

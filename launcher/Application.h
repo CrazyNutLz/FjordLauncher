@@ -193,6 +193,10 @@ class Application : public QApplication {
 
     void updateIsRunning(bool running);
     bool updatesAreAllowed();
+    // NUTMOD INTEGRATION POINT: coordinate client and launcher updates.
+    bool launcherUpdateRunning() const { return m_updateRunning; }
+    void clientUpdateStarted() { addRunningInstance(); }
+    void clientUpdateFinished() { subRunningInstance(); }
 
     void ShowGlobalSettings(class QWidget* parent, QString open_page = QString());
 
@@ -271,6 +275,7 @@ class Application : public QApplication {
     QString m_rootPath;
     QString m_dataPath;
     Status m_status = Application::StartingUp;
+    bool m_clientStartupChecked = false;
     Capabilities m_capabilities;
     bool m_portable = false;
 

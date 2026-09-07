@@ -60,7 +60,8 @@ class NetRequest : public Task {
 
    public:
     using Ptr = shared_qobject_ptr<class NetRequest>;
-    enum class Option { NoOptions = 0, AcceptLocalFiles = 1, MakeEternal = 2, AutoRetry = 4 };
+    // NUTMOD INTEGRATION POINT: avoid recording signed client download URLs.
+    enum class Option { NoOptions = 0, AcceptLocalFiles = 1, MakeEternal = 2, AutoRetry = 4, RedactUrl = 8 };
     Q_DECLARE_FLAGS(Options, Option)
 
    public:
@@ -76,6 +77,7 @@ class NetRequest : public Task {
     void enableAutoRetry(bool enable);
 
     QUrl url() const;
+    QString displayUrl() const { return m_options & Option::RedactUrl ? QStringLiteral("[client update]") : m_url.toString(); }
     void setUrl(QUrl url) { m_url = url; }
     int replyStatusCode() const;
     QNetworkReply::NetworkError error() const;

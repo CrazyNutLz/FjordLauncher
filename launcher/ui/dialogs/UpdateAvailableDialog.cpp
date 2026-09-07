@@ -24,7 +24,7 @@
 #include <QPushButton>
 #include "BuildConfig.h"
 #include "Markdown.h"
-#include "NutMod/NutModUi.h"
+#include "NutMod/ui/NutModUi.h"
 #include "StringUtils.h"
 #include "ui_UpdateAvailableDialog.h"
 

@@ -192,7 +192,7 @@ set(Launcher_VERSION_NAME4_COMMA "${Launcher_VERSION_MAJOR},${Launcher_VERSION_M
 set(Launcher_BUILD_PLATFORM "unknown" CACHE STRING "A short string identifying the platform that this build was built for. Only used to display in the about dialog.")
 
 # NUTMOD INTEGRATION POINT: load custom endpoint and branding configuration.
-include("${CMAKE_CURRENT_SOURCE_DIR}/launcher/NutMod/NutModConfig.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/launcher/NutMod/config/NutModConfig.cmake")
 
 # Launcher update manifest URL
 set(Launcher_UPDATER_GITHUB_REPO "${NUTMOD_LAUNCHER_UPDATE_MANIFEST_URL}" CACHE STRING "Update manifest URL." FORCE)

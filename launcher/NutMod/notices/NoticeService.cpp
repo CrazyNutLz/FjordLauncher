@@ -11,7 +11,7 @@
 #include "DesktopServices.h"
 #include "NoticeDialog.h"
 #include "NoticeManifest.h"
-#include "NutMod/NutModConfig.h"
+#include "NutMod/config/NutModConfig.h"
 #include "settings/SettingsObject.h"
 
 namespace NutMod {

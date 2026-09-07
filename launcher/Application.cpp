@@ -42,7 +42,7 @@
 
 #include "Application.h"
 #include "BuildConfig.h"
-#include "NutMod/NutModBootstrap.h"
+#include "NutMod/bootstrap/NutModBootstrap.h"
 
 #include "DataMigrationTask.h"
 #include "java/JavaInstallList.h"

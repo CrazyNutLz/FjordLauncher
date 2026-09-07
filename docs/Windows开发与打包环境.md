@@ -172,7 +172,7 @@ cmake --build --preset windows_msvc --config Debug --target FjordLauncher
 
 - `docs/AGENTS.md`
 - `launcher/NutMod/PORTING.md`
-- `launcher/NutMod/NutModConfig.cmake`
+- `launcher/NutMod/config/NutModConfig.cmake`
 
 ## 9. 交给新电脑上的 Codex
 

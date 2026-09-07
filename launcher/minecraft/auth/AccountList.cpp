@@ -34,7 +34,7 @@
  */
 
 #include "AccountList.h"
-#include "NutMod/NutModBootstrap.h"
+#include "NutMod/bootstrap/NutModBootstrap.h"
 #include "AccountData.h"
 #include "tasks/Task.h"
 

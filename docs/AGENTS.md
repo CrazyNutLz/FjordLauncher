@@ -42,7 +42,7 @@ Keep changes to original Fjord files as small integration points that call into 
 // NUTMOD INTEGRATION POINT: ...
 ```
 
-Do not place frequently changed URLs or server branding directly in original Fjord source files. Put them in `launcher/NutMod/NutModConfig.cmake`.
+Do not place frequently changed URLs or server branding directly in original Fjord source files. Put them in `launcher/NutMod/config/NutModConfig.cmake`.
 
 When adding or changing an integration point, update `launcher/NutMod/PORTING.md`. The intended migration workflow is to copy the complete `launcher/NutMod` directory into a newer Fjord source tree and reapply only the documented integration points.
 

@@ -11,8 +11,8 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 
-#include "NutMod/NutModConfig.h"
-#include "NutMod/NutModBootstrap.h"
+#include "NutMod/config/NutModConfig.h"
+#include "NutMod/bootstrap/NutModBootstrap.h"
 #include "settings/SettingsObject.h"
 #include "ui/widgets/WideBar.h"
 

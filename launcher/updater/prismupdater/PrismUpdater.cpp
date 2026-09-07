@@ -25,7 +25,7 @@
 #include <QCryptographicHash>
 #include <QFile>
 #include "BuildConfig.h"
-#include "NutMod/LauncherUpdateManifest.h"
+#include "NutMod/launcher_update/LauncherUpdateManifest.h"
 #include "ui/dialogs/ProgressDialog.h"
 
 #include <cstdlib>

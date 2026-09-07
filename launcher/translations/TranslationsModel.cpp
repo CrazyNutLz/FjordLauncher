@@ -43,7 +43,7 @@
 #include "BuildConfig.h"
 #include "FileSystem.h"
 #include "Json.h"
-#include "NutMod/NutModBootstrap.h"
+#include "NutMod/bootstrap/NutModBootstrap.h"
 #include "net/ChecksumValidator.h"
 #include "net/NetJob.h"
 

@@ -1,28 +1,28 @@
 # NutMod source registration. The parent launcher only needs to include this file
 # and append the exported source/resource lists to its existing targets.
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/NutMod")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/NutMod/config")
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/NutMod/NutModConfig.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/NutMod/NutModConfig.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/NutMod/config/NutModConfig.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/NutMod/config/NutModConfig.h"
     @ONLY
 )
 
 set(NUTMOD_LOGIC_SOURCES
-    NutMod/NutModBootstrap.h
-    NutMod/NutModBootstrap.cpp
-    NutMod/NoticeDialog.h
-    NutMod/NoticeDialog.cpp
-    NutMod/NoticeManifest.h
-    NutMod/NoticeManifest.cpp
-    NutMod/NoticeService.h
-    NutMod/NoticeService.cpp
-    NutMod/NutModUi.h
-    NutMod/NutModUi.cpp
+    NutMod/bootstrap/NutModBootstrap.h
+    NutMod/bootstrap/NutModBootstrap.cpp
+    NutMod/notices/NoticeDialog.h
+    NutMod/notices/NoticeDialog.cpp
+    NutMod/notices/NoticeManifest.h
+    NutMod/notices/NoticeManifest.cpp
+    NutMod/notices/NoticeService.h
+    NutMod/notices/NoticeService.cpp
+    NutMod/ui/NutModUi.h
+    NutMod/ui/NutModUi.cpp
 )
 
 set(NUTMOD_UPDATER_SOURCES
-    NutMod/LauncherUpdateManifest.h
-    NutMod/LauncherUpdateManifest.cpp
+    NutMod/launcher_update/LauncherUpdateManifest.h
+    NutMod/launcher_update/LauncherUpdateManifest.cpp
 )
 
 set(NUTMOD_RESOURCES

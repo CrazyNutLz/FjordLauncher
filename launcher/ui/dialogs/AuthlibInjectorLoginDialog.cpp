@@ -22,8 +22,8 @@
 
 #include "Application.h"
 #include "GetAuthlibInjectorApiLocation.h"
-#include "NutMod/NutModBootstrap.h"
-#include "NutMod/NutModUi.h"
+#include "NutMod/bootstrap/NutModBootstrap.h"
+#include "NutMod/ui/NutModUi.h"
 
 #include <QtWidgets/QPushButton>
 

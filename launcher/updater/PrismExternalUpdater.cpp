@@ -35,7 +35,7 @@
 #include "StringUtils.h"
 
 #include "BuildConfig.h"
-#include "NutMod/NutModBootstrap.h"
+#include "NutMod/bootstrap/NutModBootstrap.h"
 
 #include "ui/dialogs/UpdateAvailableDialog.h"
 

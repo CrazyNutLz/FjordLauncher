@@ -1,7 +1,7 @@
 #include "NutModBootstrap.h"
 
-#include "NutMod/NutModConfig.h"
-#include "NutMod/NoticeService.h"
+#include "NutMod/config/NutModConfig.h"
+#include "NutMod/notices/NoticeService.h"
 #include "settings/SettingsObject.h"
 
 namespace NutMod {

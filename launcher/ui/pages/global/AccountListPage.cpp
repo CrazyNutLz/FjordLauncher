@@ -50,8 +50,8 @@
 #include "ui/dialogs/MSALoginDialog.h"
 
 #include "Application.h"
-#include "NutMod/NutModBootstrap.h"
-#include "NutMod/NutModUi.h"
+#include "NutMod/bootstrap/NutModBootstrap.h"
+#include "NutMod/ui/NutModUi.h"
 
 AccountListPage::AccountListPage(QWidget* parent) : QMainWindow(parent), ui(new Ui::AccountListPage)
 {

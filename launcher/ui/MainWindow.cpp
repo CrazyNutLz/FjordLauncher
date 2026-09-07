@@ -41,7 +41,7 @@
 #include "Application.h"
 #include "BuildConfig.h"
 #include "FileSystem.h"
-#include "NutMod/NutModUi.h"
+#include "NutMod/ui/NutModUi.h"
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"

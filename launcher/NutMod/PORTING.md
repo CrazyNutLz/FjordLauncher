@@ -7,7 +7,7 @@
 在根 `CMakeLists.txt` 定义 Fjord 更新器地址之前：
 
 ```cmake
-include("${CMAKE_CURRENT_SOURCE_DIR}/launcher/NutMod/NutModConfig.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/launcher/NutMod/config/NutModConfig.cmake")
 ```
 
 把启动器更新地址设为：
@@ -19,6 +19,12 @@ set(Launcher_UPDATER_GITHUB_REPO "${NUTMOD_LAUNCHER_UPDATE_MANIFEST_URL}" CACHE 
 Windows 构建必须提供非空 `Launcher_BUILD_ARTIFACT`，以启用外部更新器。
 
 ## 2. Launcher 构建目标
+
+NutMod 按功能分为 `config/`、`bootstrap/`、`ui/`、`notices/`、`launcher_update/` 和 `resources/`。复制时保留目录结构；未来客户端更新放在 `client_update/`。
+
+原版接入文件的头文件路径使用 `NutMod/bootstrap/NutModBootstrap.h`、`NutMod/ui/NutModUi.h` 或 `NutMod/launcher_update/LauncherUpdateManifest.h`。跨模块调用接口未改变，仅更新 include 路径。
+
+`NutMod.cmake` 从 `config/NutModConfig.h.in` 生成构建目录中的 `NutMod/config/NutModConfig.h`；源代码通过此完整路径引用配置头。
 
 在 `launcher/CMakeLists.txt` 包含：
 
@@ -90,7 +96,7 @@ Q_INIT_RESOURCE(nutmod_translations);
 - `Application.cpp` 在创建外部更新器后监听 `ExternalUpdater::startupCheckFinished()`；只有启动器更新检查结束且未开始安装时，才调用 `NutMod::checkServerNotices()`。
 - `ExternalUpdater` 增加 `startupCheckFinished(bool)` 信号，`PrismExternalUpdater` 的自动检查完成后发出该信号。
 - `MainWindow.cpp` 调用 `NutMod::addServerNoticeAction()`，在帮助菜单的“关于”前加入手动“服务器公告”入口。
-- 公告解析、网络请求、弹窗和已读状态都位于 `NutMod/Notice*`，原版代码不保存公告 API 或服务器文案。
+- 公告解析、网络请求、弹窗和已读状态都位于 `NutMod/notices/Notice*`，原版代码不保存公告 API 或服务器文案。
 
 公告已读状态使用 `NutModSeenNoticeVersions` 字符串列表保存，支持多条 `once` 公告；手动入口会忽略已读状态并显示接口中的所有公告。
 
